@@ -28,8 +28,8 @@ class MoreScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.settings_outlined),
             title: Text(l10n.moreSettings),
-            subtitle: Text(l10n.comingSoon),
-            enabled: false,
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go(AppRoutes.moreSettings),
           ),
         ],
       ),

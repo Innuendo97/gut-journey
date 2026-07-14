@@ -12,14 +12,23 @@ final sharedPreferencesProvider = Provider<SharedPreferences>(
 /// App preferences. Diary data lives in the database; this is only
 /// device-local configuration.
 class AppSettings {
-  const AppSettings({required this.waterGoalMl});
+  const AppSettings({required this.waterGoalMl, this.localeTag});
 
   final int waterGoalMl;
 
+  /// BCP-47 tag ('en', 'it') of the forced app language, or null to follow
+  /// the system locale.
+  final String? localeTag;
+
   static const defaultWaterGoalMl = 2000;
 
-  AppSettings copyWith({int? waterGoalMl}) =>
-      AppSettings(waterGoalMl: waterGoalMl ?? this.waterGoalMl);
+  AppSettings copyWith({
+    int? waterGoalMl,
+    String? Function()? localeTag,
+  }) => AppSettings(
+    waterGoalMl: waterGoalMl ?? this.waterGoalMl,
+    localeTag: localeTag != null ? localeTag() : this.localeTag,
+  );
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, AppSettings>(
@@ -28,6 +37,7 @@ final settingsProvider = NotifierProvider<SettingsNotifier, AppSettings>(
 
 class SettingsNotifier extends Notifier<AppSettings> {
   static const _waterGoalKey = 'water_goal_ml';
+  static const _localeKey = 'locale_tag';
 
   @override
   AppSettings build() {
@@ -35,11 +45,23 @@ class SettingsNotifier extends Notifier<AppSettings> {
     return AppSettings(
       waterGoalMl:
           prefs.getInt(_waterGoalKey) ?? AppSettings.defaultWaterGoalMl,
+      localeTag: prefs.getString(_localeKey),
     );
   }
 
   Future<void> setWaterGoalMl(int goal) async {
     state = state.copyWith(waterGoalMl: goal);
     await ref.read(sharedPreferencesProvider).setInt(_waterGoalKey, goal);
+  }
+
+  /// Pass null to follow the system locale.
+  Future<void> setLocaleTag(String? tag) async {
+    state = state.copyWith(localeTag: () => tag);
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (tag == null) {
+      await prefs.remove(_localeKey);
+    } else {
+      await prefs.setString(_localeKey, tag);
+    }
   }
 }

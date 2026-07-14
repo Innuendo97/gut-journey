@@ -248,6 +248,28 @@
   },
   "statsEmptySection": "Not enough data yet \u2014 log a few days to see this.",
 
+  "onboardingTitle": "Welcome to Gut Journey",
+  "onboardingPitch": "Track meals, symptoms, bowel habits, weight, therapy and lifestyle in one place. Spot patterns over time and share a clear picture with your doctor \u2014 everything stays on your device.",
+  "onboardingContinue": "Continue",
+  "disclaimerTitle": "Before you start",
+  "disclaimerBody": "Gut Journey is a personal diary, not a medical device. It does not provide medical advice, diagnosis or treatment, and any pattern it shows is an observation \u2014 never a clinical claim. Always consult your physician or a registered dietitian about symptoms, diet and therapy.",
+  "disclaimerAccept": "I understand and accept",
+  "languageLabel": "Language",
+  "languageSystem": "System",
+  "waterGoalSetting": "Daily water goal",
+  "waterGoalValue": "{goal} ml",
+  "@waterGoalValue": {
+    "placeholders": {
+      "goal": {"type": "int"}
+    }
+  },
+  "aboutSection": "About",
+  "disclaimerSetting": "Medical disclaimer",
+  "licensesSetting": "Open source licenses",
+  "archiveAction": "Archive",
+  "restoreAction": "Restore",
+  "archivedLabel": "Archived",
+
   "moreFoodLibrary": "Food library",
   "moreMedications": "Medications",
   "moreSettings": "Settings"

@@ -7,10 +7,15 @@ import 'package:gut_journey/features/meals/presentation/food_library_screen.dart
 import 'package:gut_journey/features/medications/domain/medication.dart';
 import 'package:gut_journey/features/medications/presentation/medication_form_screen.dart';
 import 'package:gut_journey/features/medications/presentation/medications_screen.dart';
+import 'package:gut_journey/features/onboarding/data/onboarding_state.dart';
+import 'package:gut_journey/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:gut_journey/features/settings/presentation/more_screen.dart';
+import 'package:gut_journey/features/settings/presentation/settings_screen.dart';
 import 'package:gut_journey/features/stats/presentation/stats_screen.dart';
+import 'package:gut_journey/features/symptoms/presentation/symptom_types_screen.dart';
 
 abstract final class AppRoutes {
+  static const onboarding = '/onboarding';
   static const today = '/today';
   static const history = '/history';
   static const stats = '/stats';
@@ -18,14 +23,28 @@ abstract final class AppRoutes {
   static const moreFoods = '/more/foods';
   static const moreMedications = '/more/medications';
   static const moreMedicationsNew = '/more/medications/new';
+  static const moreSettings = '/more/settings';
+  static const moreSettingsSymptoms = '/more/settings/symptoms';
 
   static String moreMedicationEdit(String id) => '/more/medications/$id/edit';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
+  final onboardingAccepted = ref.watch(onboardingAcceptedProvider);
   return GoRouter(
     initialLocation: AppRoutes.today,
+    // The diary is gated behind the explicit disclaimer acceptance.
+    redirect: (context, state) {
+      final atOnboarding = state.matchedLocation == AppRoutes.onboarding;
+      if (!onboardingAccepted && !atOnboarding) return AppRoutes.onboarding;
+      if (onboardingAccepted && atOnboarding) return AppRoutes.today;
+      return null;
+    },
     routes: [
+      GoRoute(
+        path: AppRoutes.onboarding,
+        builder: (context, state) => const OnboardingScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             AppShell(navigationShell: navigationShell),
@@ -78,6 +97,16 @@ final routerProvider = Provider<GoRouter>((ref) {
                         builder: (context, state) => MedicationFormScreen(
                           existing: state.extra as Medication?,
                         ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'settings',
+                    builder: (context, state) => const SettingsScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'symptoms',
+                        builder: (context, state) => const SymptomTypesScreen(),
                       ),
                     ],
                   ),

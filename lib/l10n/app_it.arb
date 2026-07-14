@@ -167,6 +167,23 @@
   "adherencePercent": "{pct}%",
   "statsEmptySection": "Ancora pochi dati \u2014 registra qualche giorno per vederlo.",
 
+  "onboardingTitle": "Benvenuto in Gut Journey",
+  "onboardingPitch": "Registra pasti, sintomi, evacuazioni, peso, terapia e stile di vita in un unico posto. Riconosci i pattern nel tempo e condividi un quadro chiaro con il tuo medico \u2014 tutto resta sul tuo dispositivo.",
+  "onboardingContinue": "Continua",
+  "disclaimerTitle": "Prima di iniziare",
+  "disclaimerBody": "Gut Journey \u00e8 un diario personale, non un dispositivo medico. Non fornisce consigli medici, diagnosi o trattamenti, e qualsiasi pattern mostrato \u00e8 un'osservazione \u2014 mai un'indicazione clinica. Consulta sempre il tuo medico o un dietista per sintomi, dieta e terapia.",
+  "disclaimerAccept": "Ho capito e accetto",
+  "languageLabel": "Lingua",
+  "languageSystem": "Sistema",
+  "waterGoalSetting": "Obiettivo acqua giornaliero",
+  "waterGoalValue": "{goal} ml",
+  "aboutSection": "Informazioni",
+  "disclaimerSetting": "Avvertenza medica",
+  "licensesSetting": "Licenze open source",
+  "archiveAction": "Archivia",
+  "restoreAction": "Ripristina",
+  "archivedLabel": "Archiviato",
+
   "moreFoodLibrary": "Libreria alimenti",
   "moreMedications": "Farmaci",
   "moreSettings": "Impostazioni"

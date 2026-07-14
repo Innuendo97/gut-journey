@@ -8,7 +8,29 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-07-15
+
+First MVP release — a complete local-first diary.
+
 ### Added
 
-- Project scaffold: Flutter app shell with Today / History / Stats / More
-  tabs, Material 3 theme, English + Italian localization, CI pipeline.
+- **Diary logging** from one-tap bottom sheets: meals with a personal food
+  library (autocomplete, favorites, inline creation), symptoms with intensity
+  (seeded presets + custom types), bowel movements on the Bristol scale with
+  optional flags, weight pre-filled with the last value, medications with
+  one-tap scheduled doses and as-needed intakes, water (+250 ml), sleep and
+  physical activity.
+- **Today screen** with day navigation, water/medication summary strip and a
+  chronological timeline (tap to edit, swipe to delete with undo).
+- **History** month calendar with per-day tracker markers and full editing of
+  past days.
+- **Statistics** over 7/30/90 days: symptom intensity and frequency, Bristol
+  distribution, weight trend, water vs goal, sleep, activity and medication
+  adherence — all live on the local database.
+- **Food library** and **medication** management screens.
+- **Settings**: language (system/English/Italian), daily water goal, symptom
+  type management, medical disclaimer and open source licenses.
+- **Onboarding** gate with explicit medical-disclaimer acceptance.
+- English and Italian localization; Material 3 light and dark themes.
+- Local-first storage on SQLite (drift) with UUID keys, UTC timestamps and
+  write-time day bucketing; schema snapshot exported for future migrations.

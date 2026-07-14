@@ -46,10 +46,14 @@ class TestHarness {
 /// disposes the tree — so cleanup must happen inside the test body.
 void testApp(
   String description,
-  Future<void> Function(WidgetTester tester, TestHarness harness) body,
-) {
+  Future<void> Function(WidgetTester tester, TestHarness harness) body, {
+  bool onboarded = true,
+}) {
   testWidgets(description, (tester) async {
-    SharedPreferences.setMockInitialValues(const {});
+    SharedPreferences.setMockInitialValues({
+      // Most tests exercise the diary, not the disclaimer gate.
+      if (onboarded) 'onboarding_accepted': true,
+    });
     final prefs = await SharedPreferences.getInstance();
     final db = createTestDatabase();
     final clock = FixedClock(DateTime(2026, 7, 14, 12));
@@ -66,22 +70,27 @@ void testApp(
     );
     await tester.pumpAndSettle();
 
+    var bodySucceeded = false;
     try {
       await body(tester, TestHarness(db: db, clock: clock));
+      bodySucceeded = true;
     } finally {
       // Teardown choreography for drift under fake async: unmount the tree
       // (cancels stream subscriptions), pump so drift's zero-duration
       // stream-teardown timers fire, then close the database while pumping —
       // close() itself waits on those timers, so awaiting it before pumping
-      // would deadlock.
-      // pump() without a duration does not advance the fake clock, so the
-      // zero-delay timers would never fire — hence the explicit durations.
+      // would deadlock. pump() without a duration does not advance the fake
+      // clock, so the explicit durations matter.
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(milliseconds: 1));
-      final closing = db.close();
-      await tester.pump(const Duration(milliseconds: 1));
-      await tester.pump(const Duration(milliseconds: 1));
-      await closing;
+      if (bodySucceeded) {
+        final closing = db.close();
+        await tester.pump(const Duration(milliseconds: 1));
+        await tester.pump(const Duration(milliseconds: 1));
+        await closing;
+      }
+      // On failure the in-memory database is deliberately leaked: closing it
+      // in a broken state can deadlock and mask the original assertion.
     }
   });
 }

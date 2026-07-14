@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gut_journey/core/widgets/empty_state.dart';
+import 'package:gut_journey/core/widgets/text_input_dialog.dart';
 import 'package:gut_journey/features/meals/data/food_repository.dart';
 import 'package:gut_journey/features/meals/domain/food_item.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
@@ -106,57 +107,29 @@ class _FoodLibraryScreenState extends ConsumerState<FoodLibraryScreen> {
 
   Future<void> _edit(FoodItem food) async {
     final l10n = AppLocalizations.of(context);
-    final nameController = TextEditingController(text: food.name);
-    final categoryController = TextEditingController(
-      text: food.category ?? '',
-    );
-    final saved = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.editFood),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(labelText: l10n.foodNameLabel),
-              textCapitalization: TextCapitalization.sentences,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: categoryController,
-              decoration: InputDecoration(labelText: l10n.foodCategoryLabel),
-              textCapitalization: TextCapitalization.sentences,
-            ),
-          ],
+    final values = await TextInputDialog.show(
+      context,
+      title: l10n.editFood,
+      fields: [
+        TextInputField(label: l10n.foodNameLabel, initialValue: food.name),
+        TextInputField(
+          label: l10n.foodCategoryLabel,
+          initialValue: food.category ?? '',
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.save),
-          ),
-        ],
-      ),
+      ],
     );
-    if (saved ?? false) {
-      final name = nameController.text.trim();
-      final category = categoryController.text.trim();
-      if (name.isNotEmpty) {
-        await ref
-            .read(foodRepositoryProvider)
-            .updateItem(
-              food.copyWith(
-                name: name,
-                category: category.isEmpty ? null : category,
-              ),
-            );
-      }
+    if (values == null) return;
+    final name = values[0].trim();
+    final category = values[1].trim();
+    if (name.isNotEmpty) {
+      await ref
+          .read(foodRepositoryProvider)
+          .updateItem(
+            food.copyWith(
+              name: name,
+              category: category.isEmpty ? null : category,
+            ),
+          );
     }
-    nameController.dispose();
-    categoryController.dispose();
   }
 }

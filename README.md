@@ -29,13 +29,13 @@ Gut Journey keeps everything in one place, fully on your device.
 
 | Feature | Status |
 | --- | --- |
-| Meals & drinks with a personal food library (autocomplete, favorites) | 🚧 MVP |
-| Symptoms with intensity (presets + custom types) | 🚧 MVP |
-| Bowel movements with Bristol Stool Scale | 🚧 MVP |
-| Weight, medications & adherence, water, sleep, activity | 🚧 MVP |
-| History calendar with back-filling | 🚧 MVP |
-| Statistics: trends, distributions, summaries | 🚧 MVP |
-| Italian + English | 🚧 MVP |
+| Meals & drinks with a personal food library (autocomplete, favorites) | ✅ |
+| Symptoms with intensity (presets + custom types) | ✅ |
+| Bowel movements with Bristol Stool Scale | ✅ |
+| Weight, medications & adherence, water, sleep, activity | ✅ |
+| History calendar with back-filling | ✅ |
+| Statistics: trends, distributions, summaries | ✅ |
+| Italian + English | ✅ |
 | Backup & restore | 🔮 Planned |
 | PDF export for your doctor | 🔮 Planned |
 | Food ↔ symptom correlation insights | 🔮 Planned |
