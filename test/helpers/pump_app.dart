@@ -5,10 +5,28 @@ import 'package:gut_journey/app/app.dart';
 import 'package:gut_journey/core/db/app_database.dart';
 import 'package:gut_journey/core/providers/clock_provider.dart';
 import 'package:gut_journey/core/providers/database_provider.dart';
+import 'package:gut_journey/features/diary/presentation/today_screen.dart';
 import 'package:gut_journey/features/settings/data/settings_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'test_db.dart';
+
+/// Taps a button on the quick-add bar; labels there can also appear
+/// elsewhere on the screen (e.g. the water card title).
+Future<void> tapQuickAdd(WidgetTester tester, String label) async {
+  await tester.tap(
+    find.descendant(of: find.byType(QuickAddBar), matching: find.text(label)),
+  );
+  await tester.pumpAndSettle();
+}
+
+/// Scrolls a sheet target into view before tapping it.
+Future<void> tapInSheet(WidgetTester tester, String label) async {
+  await tester.ensureVisible(find.text(label));
+  await tester.pump();
+  await tester.tap(find.text(label));
+  await tester.pumpAndSettle();
+}
 
 /// Everything a widget test needs to drive the real app: in-memory database,
 /// mocked preferences and a pinned clock.

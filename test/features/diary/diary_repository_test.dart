@@ -5,6 +5,7 @@ import 'package:gut_journey/features/activity/data/activity_repository.dart';
 import 'package:gut_journey/features/activity/domain/effort.dart';
 import 'package:gut_journey/features/bowel/data/bowel_repository.dart';
 import 'package:gut_journey/features/diary/data/diary_repository.dart';
+import 'package:gut_journey/features/diary/domain/tracker_kind.dart';
 import 'package:gut_journey/features/meals/data/food_repository.dart';
 import 'package:gut_journey/features/meals/data/meal_repository.dart';
 import 'package:gut_journey/features/meals/domain/meal_entry.dart';
@@ -47,6 +48,7 @@ void main() {
     sleep = SleepRepository(db, clock.call);
     activity = ActivityRepository(db, clock.call);
     diary = DiaryRepository(
+      db: db,
       meals: meals,
       symptoms: symptoms,
       bowel: bowel,
@@ -129,6 +131,25 @@ void main() {
     expect(emissions.first, 0);
     expect(emissions.last, 250);
     await subscription.cancel();
+  });
+
+  test('watchTrackerDays maps days to the trackers logged on them', () async {
+    await water.add(amountMl: 250, occurredAt: DateTime(2026, 7, 12, 9));
+    await weight.add(weightKg: 70, occurredAt: DateTime(2026, 7, 12, 8));
+    await bowel.add(bristolType: 4, occurredAt: DateTime(2026, 7, 14, 9));
+    // Outside the requested range:
+    await water.add(amountMl: 100, occurredAt: DateTime(2026, 8, 2, 9));
+
+    final markers = await diary
+        .watchTrackerDays(LocalDay('2026-07-01'), LocalDay('2026-07-31'))
+        .first;
+
+    expect(markers, hasLength(2));
+    expect(
+      markers[LocalDay('2026-07-12')],
+      {TrackerKind.water, TrackerKind.weight},
+    );
+    expect(markers[LocalDay('2026-07-14')], {TrackerKind.bowel});
   });
 
   test('does not leak entries from neighboring days', () async {

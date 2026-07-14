@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/core/providers/clock_provider.dart';
-import 'package:gut_journey/core/widgets/empty_state.dart';
 import 'package:gut_journey/features/activity/presentation/activity_quick_add_sheet.dart';
 import 'package:gut_journey/features/bowel/presentation/bowel_quick_add_sheet.dart';
 import 'package:gut_journey/features/diary/domain/diary_day.dart';
+import 'package:gut_journey/features/diary/presentation/diary_day_body.dart';
 import 'package:gut_journey/features/diary/presentation/diary_providers.dart';
-import 'package:gut_journey/features/diary/presentation/entry_timeline.dart';
 import 'package:gut_journey/features/meals/presentation/meal_quick_add_sheet.dart';
 import 'package:gut_journey/features/medications/presentation/medication_quick_add_sheet.dart';
 import 'package:gut_journey/features/settings/data/settings_repository.dart';
@@ -28,7 +27,6 @@ class TodayScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final day = ref.watch(selectedDayProvider);
     final today = LocalDay.fromDateTime(ref.watch(clockProvider)());
-    final diaryAsync = ref.watch(diaryDayProvider(day));
 
     return Scaffold(
       appBar: AppBar(
@@ -54,31 +52,7 @@ class TodayScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          QuickAddBar(day: day),
-          Expanded(
-            child: switch (diaryAsync) {
-              AsyncValue(value: final diaryDay?) => ListView(
-                padding: const EdgeInsets.only(bottom: 24),
-                children: [
-                  DaySummaryStrip(diaryDay: diaryDay),
-                  if (diaryDay.isEmpty)
-                    EmptyState(
-                      icon: Icons.edit_calendar_outlined,
-                      title: l10n.emptyDayTitle,
-                      subtitle: l10n.emptyDaySubtitle,
-                    )
-                  else
-                    EntryTimeline(diaryDay: diaryDay),
-                ],
-              ),
-              AsyncValue(:final error?) => Center(child: Text('$error')),
-              _ => const Center(child: CircularProgressIndicator()),
-            },
-          ),
-        ],
-      ),
+      body: DiaryDayBody(day: day),
     );
   }
 

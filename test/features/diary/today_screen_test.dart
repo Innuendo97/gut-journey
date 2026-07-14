@@ -1,27 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
-import 'package:gut_journey/features/diary/presentation/today_screen.dart';
 import 'package:gut_journey/features/meals/domain/meal_type.dart';
 
 import '../../helpers/pump_app.dart';
-
-/// Taps a button on the quick-add bar; labels there can also appear
-/// elsewhere on the screen (e.g. the water card title).
-Future<void> tapQuickAdd(WidgetTester tester, String label) async {
-  await tester.tap(
-    find.descendant(of: find.byType(QuickAddBar), matching: find.text(label)),
-  );
-  await tester.pumpAndSettle();
-}
-
-/// Scrolls a sheet target into view before tapping it.
-Future<void> tapInSheet(WidgetTester tester, String label) async {
-  await tester.ensureVisible(find.text(label));
-  await tester.pump();
-  await tester.tap(find.text(label));
-  await tester.pumpAndSettle();
-}
 
 void main() {
   testApp('shows the empty state on a fresh day', (tester, harness) async {
