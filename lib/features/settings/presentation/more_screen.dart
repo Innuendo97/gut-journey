@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:gut_journey/app/router.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
 
 class MoreScreen extends StatelessWidget {
@@ -9,7 +11,28 @@ class MoreScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.tabMore)),
-      body: Center(child: Text(l10n.comingSoon)),
+      body: ListView(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.restaurant_outlined),
+            title: Text(l10n.moreFoodLibrary),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go(AppRoutes.moreFoods),
+          ),
+          ListTile(
+            leading: const Icon(Icons.medication_outlined),
+            title: Text(l10n.moreMedications),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go(AppRoutes.moreMedications),
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings_outlined),
+            title: Text(l10n.moreSettings),
+            subtitle: Text(l10n.comingSoon),
+            enabled: false,
+          ),
+        ],
+      ),
     );
   }
 }

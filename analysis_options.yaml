@@ -11,3 +11,6 @@ linter:
     # Documenting every public member adds noise in an app (vs a library);
     # doc comments are reserved for non-obvious APIs.
     public_member_api_docs: false
+    # Riverpod 3 family/autoDispose providers have internal (inexpressible)
+    # static types; inference is the intended usage.
+    specify_nonobvious_property_types: false

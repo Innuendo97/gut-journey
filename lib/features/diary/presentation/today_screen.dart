@@ -1,15 +1,340 @@
-import 'package:flutter/material.dart';
-import 'package:gut_journey/l10n/generated/app_localizations.dart';
+import 'dart:async';
 
-class TodayScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gut_journey/core/domain/local_day.dart';
+import 'package:gut_journey/core/providers/clock_provider.dart';
+import 'package:gut_journey/core/widgets/empty_state.dart';
+import 'package:gut_journey/features/activity/presentation/activity_quick_add_sheet.dart';
+import 'package:gut_journey/features/bowel/presentation/bowel_quick_add_sheet.dart';
+import 'package:gut_journey/features/diary/domain/diary_day.dart';
+import 'package:gut_journey/features/diary/presentation/diary_providers.dart';
+import 'package:gut_journey/features/diary/presentation/entry_timeline.dart';
+import 'package:gut_journey/features/meals/presentation/meal_quick_add_sheet.dart';
+import 'package:gut_journey/features/medications/presentation/medication_quick_add_sheet.dart';
+import 'package:gut_journey/features/settings/data/settings_repository.dart';
+import 'package:gut_journey/features/sleep/presentation/sleep_quick_add_sheet.dart';
+import 'package:gut_journey/features/symptoms/presentation/symptom_quick_add_sheet.dart';
+import 'package:gut_journey/features/water/data/water_repository.dart';
+import 'package:gut_journey/features/weight/presentation/weight_quick_add_sheet.dart';
+import 'package:gut_journey/l10n/generated/app_localizations.dart';
+import 'package:intl/intl.dart';
+
+class TodayScreen extends ConsumerWidget {
   const TodayScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final day = ref.watch(selectedDayProvider);
+    final today = LocalDay.fromDateTime(ref.watch(clockProvider)());
+    final diaryAsync = ref.watch(diaryDayProvider(day));
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.tabToday)),
-      body: Center(child: Text(l10n.comingSoon)),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left),
+          onPressed: () => ref.read(selectedDayProvider.notifier).previousDay(),
+        ),
+        title: Text(_dayTitle(context, day, today)),
+        centerTitle: true,
+        actions: [
+          if (day != today)
+            IconButton(
+              icon: const Icon(Icons.today_outlined),
+              tooltip: l10n.todayLabel,
+              onPressed: () =>
+                  ref.read(selectedDayProvider.notifier).goToToday(),
+            ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            onPressed: day.isBefore(today)
+                ? () => ref.read(selectedDayProvider.notifier).nextDay()
+                : null,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          QuickAddBar(day: day),
+          Expanded(
+            child: switch (diaryAsync) {
+              AsyncValue(value: final diaryDay?) => ListView(
+                padding: const EdgeInsets.only(bottom: 24),
+                children: [
+                  DaySummaryStrip(diaryDay: diaryDay),
+                  if (diaryDay.isEmpty)
+                    EmptyState(
+                      icon: Icons.edit_calendar_outlined,
+                      title: l10n.emptyDayTitle,
+                      subtitle: l10n.emptyDaySubtitle,
+                    )
+                  else
+                    EntryTimeline(diaryDay: diaryDay),
+                ],
+              ),
+              AsyncValue(:final error?) => Center(child: Text('$error')),
+              _ => const Center(child: CircularProgressIndicator()),
+            },
+          ),
+        ],
+      ),
     );
+  }
+
+  String _dayTitle(BuildContext context, LocalDay day, LocalDay today) {
+    final l10n = AppLocalizations.of(context);
+    if (day == today) return l10n.todayLabel;
+    if (day == today.previous) return l10n.yesterdayLabel;
+    final locale = Localizations.localeOf(context).toString();
+    return DateFormat.MMMEd(locale).format(day.toDateTime());
+  }
+}
+
+/// The always-visible row of one-tap entry points — the core promise that
+/// logging anything takes seconds.
+class QuickAddBar extends ConsumerWidget {
+  const QuickAddBar({required this.day, super.key});
+
+  final LocalDay day;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final buttons = [
+      (
+        Icons.restaurant_outlined,
+        l10n.quickAddMeal,
+        () {
+          unawaited(MealQuickAddSheet.show(context, day: day));
+        },
+      ),
+      (
+        Icons.healing_outlined,
+        l10n.quickAddSymptom,
+        () {
+          unawaited(SymptomQuickAddSheet.show(context, day: day));
+        },
+      ),
+      (
+        Icons.wc_outlined,
+        l10n.quickAddBowel,
+        () {
+          unawaited(BowelQuickAddSheet.show(context, day: day));
+        },
+      ),
+      (
+        Icons.water_drop_outlined,
+        l10n.quickAddWater,
+        () {
+          unawaited(_addWater(ref));
+        },
+      ),
+      (
+        Icons.monitor_weight_outlined,
+        l10n.quickAddWeight,
+        () {
+          unawaited(WeightQuickAddSheet.show(context, day: day));
+        },
+      ),
+      (
+        Icons.medication_outlined,
+        l10n.quickAddMedication,
+        () {
+          unawaited(MedicationQuickAddSheet.show(context, day: day));
+        },
+      ),
+      (
+        Icons.bedtime_outlined,
+        l10n.quickAddSleep,
+        () {
+          final diaryDay = ref.read(diaryDayProvider(day)).value;
+          unawaited(
+            SleepQuickAddSheet.show(
+              context,
+              day: day,
+              existing: diaryDay?.sleep,
+            ),
+          );
+        },
+      ),
+      (
+        Icons.directions_run_outlined,
+        l10n.quickAddActivity,
+        () {
+          unawaited(ActivityQuickAddSheet.show(context, day: day));
+        },
+      ),
+    ];
+
+    return SizedBox(
+      height: 76,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        itemCount: buttons.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 4),
+        itemBuilder: (context, index) {
+          final (icon, label, onTap) = buttons[index];
+          return _QuickAddButton(icon: icon, label: label, onTap: onTap);
+        },
+      ),
+    );
+  }
+
+  Future<void> _addWater(WidgetRef ref) {
+    final now = ref.read(clockProvider)();
+    final occurredAt = LocalDay.fromDateTime(now) == day
+        ? now
+        : day.toDateTime().add(const Duration(hours: 12));
+    return ref
+        .read(waterRepositoryProvider)
+        .add(amountMl: 250, occurredAt: occurredAt);
+  }
+}
+
+class _QuickAddButton extends StatelessWidget {
+  const _QuickAddButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: theme.colorScheme.primary),
+            const SizedBox(height: 4),
+            Text(label, style: theme.textTheme.labelSmall),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact water + medications overview for the day.
+class DaySummaryStrip extends ConsumerWidget {
+  const DaySummaryStrip({required this.diaryDay, super.key});
+
+  final DiaryDay diaryDay;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final goal = ref.watch(settingsProvider).waterGoalMl;
+    final medications = ref.watch(activeMedicationsProvider).value ?? const [];
+    final expectedDoses = medications.fold<int>(
+      0,
+      (sum, med) => sum + med.expectedSlotsOn(diaryDay.day).length,
+    );
+    final takenDoses = diaryDay.medicationIntakes.length;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+      // IntrinsicHeight keeps the two cards equal-height inside the
+      // unbounded-height ListView.
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.waterCardTitle,
+                        style: theme.textTheme.labelMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.waterProgress(diaryDay.totalWaterMl, goal),
+                        style: theme.textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      LinearProgressIndicator(
+                        value: goal == 0
+                            ? 0
+                            : (diaryDay.totalWaterMl / goal)
+                                  .clamp(0, 1)
+                                  .toDouble(),
+                      ),
+                      const SizedBox(height: 4),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () => unawaited(
+                            ref
+                                .read(waterRepositoryProvider)
+                                .add(
+                                  amountMl: 250,
+                                  occurredAt: _waterMoment(ref),
+                                ),
+                          ),
+                          child: Text(l10n.addWater250),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Card(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => unawaited(
+                    MedicationQuickAddSheet.show(context, day: diaryDay.day),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.medsCardTitle,
+                          style: theme.textTheme.labelMedium,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          expectedDoses == 0 && takenDoses == 0
+                              ? l10n.medsNoneScheduled
+                              : l10n.medsProgress(takenDoses, expectedDoses),
+                          style: theme.textTheme.titleSmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  DateTime _waterMoment(WidgetRef ref) {
+    final now = ref.read(clockProvider)();
+    return LocalDay.fromDateTime(now) == diaryDay.day
+        ? now
+        : diaryDay.day.toDateTime().add(const Duration(hours: 12));
   }
 }

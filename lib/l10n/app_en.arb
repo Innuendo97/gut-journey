@@ -5,5 +5,205 @@
   "tabHistory": "History",
   "tabStats": "Stats",
   "tabMore": "More",
-  "comingSoon": "Coming soon"
+  "comingSoon": "Coming soon",
+
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "add": "Add",
+  "undo": "Undo",
+  "notesLabel": "Notes",
+  "notesHint": "Anything worth remembering?",
+  "entryDeleted": "Entry deleted",
+  "todayLabel": "Today",
+  "yesterdayLabel": "Yesterday",
+
+  "emptyDayTitle": "Nothing logged yet",
+  "emptyDaySubtitle": "Use the buttons above to log your day — it only takes a moment.",
+
+  "quickAddMeal": "Meal",
+  "quickAddSymptom": "Symptom",
+  "quickAddBowel": "Bowel",
+  "quickAddWater": "Water",
+  "quickAddWeight": "Weight",
+  "quickAddMedication": "Meds",
+  "quickAddSleep": "Sleep",
+  "quickAddActivity": "Activity",
+
+  "waterCardTitle": "Water",
+  "waterProgress": "{consumed} / {goal} ml",
+  "@waterProgress": {
+    "placeholders": {
+      "consumed": {"type": "int"},
+      "goal": {"type": "int"}
+    }
+  },
+  "addWater250": "+250 ml",
+  "medsCardTitle": "Medications",
+  "medsProgress": "{taken} of {expected} doses taken",
+  "@medsProgress": {
+    "placeholders": {
+      "taken": {"type": "int"},
+      "expected": {"type": "int"}
+    }
+  },
+  "medsNoneScheduled": "No doses scheduled",
+
+  "mealTypeBreakfast": "Breakfast",
+  "mealTypeLunch": "Lunch",
+  "mealTypeDinner": "Dinner",
+  "mealTypeSnack": "Snack",
+  "mealTypeDrink": "Drink",
+
+  "mealSheetTitle": "Log a meal",
+  "mealSheetEditTitle": "Edit meal",
+  "foodSearchHint": "Type a food…",
+  "addFoodInline": "Add \"{name}\"",
+  "@addFoodInline": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "suggestionsLabel": "Suggestions",
+  "noFoodsSelected": "No foods yet — search or type one above.",
+
+  "symptomSheetTitle": "Log a symptom",
+  "symptomSheetEditTitle": "Edit symptom",
+  "intensityLabel": "Intensity",
+  "intensityMild": "Mild",
+  "intensityModerate": "Moderate",
+  "intensitySevere": "Severe",
+  "intensityOutOf10": "{intensity}/10",
+  "@intensityOutOf10": {
+    "placeholders": {
+      "intensity": {"type": "int"}
+    }
+  },
+  "durationLabel": "Duration (minutes)",
+  "minutesShort": "{minutes} min",
+  "@minutesShort": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "manageSymptomTypes": "Manage symptom types",
+  "addSymptomType": "Add symptom type",
+  "symptomTypeName": "Symptom name",
+
+  "symptomBloating": "Bloating",
+  "symptomAbdominalPain": "Abdominal pain",
+  "symptomNausea": "Nausea",
+  "symptomGas": "Gas",
+  "symptomHeartburn": "Heartburn",
+  "symptomCramps": "Cramps",
+  "symptomConstipationFeeling": "Constipation feeling",
+  "symptomUrgency": "Urgency",
+  "symptomFatigue": "Fatigue",
+  "symptomHeadache": "Headache",
+
+  "bowelSheetTitle": "Log a bowel movement",
+  "bowelSheetEditTitle": "Edit bowel movement",
+  "bristolTitle": "Bristol {type}",
+  "@bristolTitle": {
+    "placeholders": {
+      "type": {"type": "int"}
+    }
+  },
+  "bristol1": "Separate hard lumps",
+  "bristol2": "Lumpy, sausage-shaped",
+  "bristol3": "Sausage with surface cracks",
+  "bristol4": "Smooth and soft",
+  "bristol5": "Soft blobs, clear edges",
+  "bristol6": "Mushy, ragged edges",
+  "bristol7": "Liquid, no solid pieces",
+  "moreOptions": "More options",
+  "urgencyLabel": "Urgency",
+  "painLabel": "Pain",
+  "bloodLabel": "Blood",
+  "mucusLabel": "Mucus",
+  "incompleteLabel": "Incomplete evacuation",
+
+  "weightSheetTitle": "Log weight",
+  "weightSheetEditTitle": "Edit weight",
+  "weightKgLabel": "Weight (kg)",
+  "weightKgValue": "{weight} kg",
+  "@weightKgValue": {
+    "placeholders": {
+      "weight": {"type": "String"}
+    }
+  },
+  "weightInvalid": "Enter a valid weight",
+
+  "medicationSheetTitle": "Medications",
+  "scheduledSection": "Scheduled today",
+  "asNeededSection": "As needed",
+  "takeAction": "Take",
+  "skipAction": "Skip",
+  "takenStatus": "Taken",
+  "skippedStatus": "Skipped",
+  "takenAt": "Taken · {time}",
+  "@takenAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "noMedications": "No medications yet",
+  "manageMedications": "Manage medications",
+
+  "sleepSheetTitle": "Log sleep",
+  "sleepDurationLabel": "Sleep duration",
+  "sleepHoursMinutes": "{hours}h {minutes}m",
+  "@sleepHoursMinutes": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
+  "sleepQualityLabel": "Quality",
+
+  "activitySheetTitle": "Log activity",
+  "activitySheetEditTitle": "Edit activity",
+  "activityNameLabel": "Activity",
+  "activityNameHint": "Walking, swimming, yoga…",
+  "activityDurationLabel": "Duration (minutes)",
+  "effortLabel": "Effort",
+  "effortLight": "Light",
+  "effortModerate": "Moderate",
+  "effortVigorous": "Vigorous",
+  "activityNameRequired": "Give the activity a name",
+
+  "foodLibraryTitle": "Food library",
+  "searchFoodsHint": "Search foods…",
+  "noFoodsYet": "Foods you log in meals will appear here.",
+  "foodUsageCount": "Used {count} times",
+  "@foodUsageCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "foodInUse": "This food is used by logged meals and can't be deleted.",
+  "editFood": "Edit food",
+  "foodNameLabel": "Name",
+  "foodCategoryLabel": "Category (optional)",
+
+  "medicationsTitle": "Medications",
+  "addMedication": "Add medication",
+  "editMedication": "Edit medication",
+  "medicationNameLabel": "Name",
+  "medicationNameRequired": "Give the medication a name",
+  "dosageLabel": "Dosage (e.g. 40 mg)",
+  "scheduleLabel": "Schedule",
+  "scheduleAsNeeded": "As needed",
+  "scheduleDaily": "Daily",
+  "scheduledTimesLabel": "Times",
+  "addTime": "Add time",
+  "activeLabel": "Active",
+  "inactiveLabel": "Inactive",
+  "deleteMedication": "Delete medication",
+  "deleteMedicationWarning": "This also deletes its intake history.",
+
+  "moreFoodLibrary": "Food library",
+  "moreMedications": "Medications",
+  "moreSettings": "Settings"
 }
