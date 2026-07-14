@@ -1,0 +1,13 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "lib/l10n/generated/**"
+
+linter:
+  rules:
+    # Documenting every public member adds noise in an app (vs a library);
+    # doc comments are reserved for non-obvious APIs.
+    public_member_api_docs: false
