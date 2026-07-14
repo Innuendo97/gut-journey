@@ -150,6 +150,23 @@
   "deleteMedication": "Elimina farmaco",
   "deleteMedicationWarning": "Verrà eliminato anche lo storico delle assunzioni.",
 
+  "statsPeriodDays": "{days} giorni",
+  "sectionSymptomIntensity": "Intensit\u00e0 sintomi",
+  "sectionSymptomIntensitySubtitle": "Media giornaliera, 1\u201310",
+  "sectionSymptomFrequency": "Frequenza sintomi",
+  "sectionBristol": "Distribuzione Bristol",
+  "bristolNormalShare": "{pct}% nell'intervallo tipico 3\u20134",
+  "sectionWeight": "Peso (kg)",
+  "weightMinAvgMax": "min {min} \u00b7 media {avg} \u00b7 max {max}",
+  "sectionWater": "Acqua (ml)",
+  "waterGoalLegend": "obiettivo",
+  "sectionSleep": "Sonno (ore)",
+  "sleepAverage": "media {hours}h {minutes}m",
+  "sectionActivity": "Attivit\u00e0 (minuti)",
+  "sectionAdherence": "Aderenza alla terapia",
+  "adherencePercent": "{pct}%",
+  "statsEmptySection": "Ancora pochi dati \u2014 registra qualche giorno per vederlo.",
+
   "moreFoodLibrary": "Libreria alimenti",
   "moreMedications": "Farmaci",
   "moreSettings": "Impostazioni"

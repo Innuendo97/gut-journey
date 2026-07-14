@@ -203,6 +203,51 @@
   "deleteMedication": "Delete medication",
   "deleteMedicationWarning": "This also deletes its intake history.",
 
+  "statsPeriodDays": "{days} days",
+  "@statsPeriodDays": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "sectionSymptomIntensity": "Symptom intensity",
+  "sectionSymptomIntensitySubtitle": "Daily average, 1\u201310",
+  "sectionSymptomFrequency": "Symptom frequency",
+  "sectionBristol": "Bristol distribution",
+  "bristolNormalShare": "{pct}% in the typical 3\u20134 range",
+  "@bristolNormalShare": {
+    "placeholders": {
+      "pct": {"type": "int"}
+    }
+  },
+  "sectionWeight": "Weight (kg)",
+  "weightMinAvgMax": "min {min} \u00b7 avg {avg} \u00b7 max {max}",
+  "@weightMinAvgMax": {
+    "placeholders": {
+      "min": {"type": "String"},
+      "avg": {"type": "String"},
+      "max": {"type": "String"}
+    }
+  },
+  "sectionWater": "Water (ml)",
+  "waterGoalLegend": "goal",
+  "sectionSleep": "Sleep (hours)",
+  "sleepAverage": "average {hours}h {minutes}m",
+  "@sleepAverage": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
+  "sectionActivity": "Activity (minutes)",
+  "sectionAdherence": "Medication adherence",
+  "adherencePercent": "{pct}%",
+  "@adherencePercent": {
+    "placeholders": {
+      "pct": {"type": "int"}
+    }
+  },
+  "statsEmptySection": "Not enough data yet \u2014 log a few days to see this.",
+
   "moreFoodLibrary": "Food library",
   "moreMedications": "Medications",
   "moreSettings": "Settings"

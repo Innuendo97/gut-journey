@@ -109,13 +109,27 @@ class MedicationRepository {
     LocalDay from,
     LocalDay to,
   ) async {
-    final rows =
-        await (_db.select(_db.medicationIntakes)
-              ..where((t) => t.localDay.isBetweenValues(from.value, to.value))
-              ..orderBy([(t) => OrderingTerm.asc(t.occurredAt)]))
-            .get();
-    return [for (final row in rows) row.toDomain()];
+    return _intakesBetweenQuery(from, to).get().then(_toDomainList);
   }
+
+  /// Watch variant of [intakesBetween], used by live adherence stats.
+  Stream<List<MedicationIntake>> watchIntakesBetween(
+    LocalDay from,
+    LocalDay to,
+  ) {
+    return _intakesBetweenQuery(from, to).watch().map(_toDomainList);
+  }
+
+  SimpleSelectStatement<$MedicationIntakesTable, MedicationIntakeRow>
+  _intakesBetweenQuery(LocalDay from, LocalDay to) {
+    return _db.select(_db.medicationIntakes)
+      ..where((t) => t.localDay.isBetweenValues(from.value, to.value))
+      ..orderBy([(t) => OrderingTerm.asc(t.occurredAt)]);
+  }
+
+  List<MedicationIntake> _toDomainList(List<MedicationIntakeRow> rows) => [
+    for (final row in rows) row.toDomain(),
+  ];
 
   Future<String> logIntake({
     required String medicationId,
