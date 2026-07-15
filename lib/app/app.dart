@@ -15,6 +15,7 @@ class GutJourneyApp extends ConsumerWidget {
       settingsProvider.select((settings) => settings.localeTag),
     );
     return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
       routerConfig: router,
       theme: buildAppTheme(Brightness.light),
       darkTheme: buildAppTheme(Brightness.dark),
