@@ -1,0 +1,11 @@
+# Backgrounds match ColorScheme.fromSeed(seedColor).surface per brightness
+# (printed by tool/branding/render_brand_assets_test.dart) so the splash
+# hands off seamlessly to the app's first frame.
+flutter_native_splash:
+  color: "#F5FBF7"
+  color_dark: "#0E1513"
+  image: assets/branding/splash_logo.png
+  android_12:
+    color: "#F5FBF7"
+    color_dark: "#0E1513"
+    image: assets/branding/splash_logo.png

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gut_journey/app/branding/brand_mark.dart';
 import 'package:gut_journey/app/router.dart';
 import 'package:gut_journey/features/onboarding/data/onboarding_state.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
@@ -39,7 +40,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           controller: _controller,
           children: [
             _OnboardingPage(
-              icon: Icons.auto_stories_outlined,
+              hero: const BrandMark(size: 96),
               title: l10n.onboardingTitle,
               body: l10n.onboardingPitch,
               action: FilledButton(
@@ -51,7 +52,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
             ),
             _OnboardingPage(
-              icon: Icons.medical_information_outlined,
+              hero: Icon(
+                Icons.medical_information_outlined,
+                size: 72,
+                color: theme.colorScheme.primary,
+              ),
               title: l10n.disclaimerTitle,
               body: l10n.disclaimerBody,
               bodyStyle: theme.textTheme.bodyMedium,
@@ -69,14 +74,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
 class _OnboardingPage extends StatelessWidget {
   const _OnboardingPage({
-    required this.icon,
+    required this.hero,
     required this.title,
     required this.body,
     required this.action,
     this.bodyStyle,
   });
 
-  final IconData icon;
+  final Widget hero;
   final String title;
   final String body;
   final Widget action;
@@ -91,7 +96,7 @@ class _OnboardingPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(icon, size: 72, color: theme.colorScheme.primary),
+          Center(child: hero),
           const SizedBox(height: 24),
           Text(
             title,
