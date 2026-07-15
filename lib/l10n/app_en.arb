@@ -263,6 +263,20 @@
       "goal": {"type": "int"}
     }
   },
+  "backupExportDb": "Export backup",
+  "backupExportDbSubtitle": "Save a full copy of your data (database file)",
+  "backupExportJson": "Export data as JSON",
+  "backupExportJsonSubtitle": "For spreadsheets or other apps",
+  "backupRestore": "Restore from backup",
+  "backupRestoreSubtitle": "Replace current data with a backup file",
+  "backupSaved": "Backup saved",
+  "exportSaved": "Export saved",
+  "backupRestoreConfirmTitle": "Restore backup?",
+  "backupRestoreConfirmBody": "This replaces all current data with the contents of the backup. This cannot be undone.",
+  "backupRestoreDone": "Backup restored",
+  "backupErrorInvalid": "This file is not a Gut Journey backup.",
+  "backupErrorNewer": "This backup was created by a newer version of the app. Update the app and try again.",
+
   "aboutSection": "About",
   "disclaimerSetting": "Medical disclaimer",
   "licensesSetting": "Open source licenses",

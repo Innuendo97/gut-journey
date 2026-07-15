@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- **Backup & restore** in Settings: export the whole database as a backup
+  file, export all data as JSON, and restore a previously exported backup
+  (validated, migrated to the current schema, and applied atomically).
+
 ## [0.1.0] - 2026-07-15
 
 First MVP release — a complete local-first diary.

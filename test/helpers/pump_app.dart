@@ -48,6 +48,9 @@ void testApp(
   String description,
   Future<void> Function(WidgetTester tester, TestHarness harness) body, {
   bool onboarded = true,
+  // Riverpod 3 does not export the Override type, so it is inexpressible
+  // here; the values must still be provider overrides.
+  List<Object> overrides = const [],
 }) {
   testWidgets(description, (tester) async {
     SharedPreferences.setMockInitialValues({
@@ -64,6 +67,7 @@ void testApp(
           databaseProvider.overrideWithValue(db),
           sharedPreferencesProvider.overrideWithValue(prefs),
           clockProvider.overrideWithValue(clock.call),
+          ...overrides.cast(),
         ],
         child: const GutJourneyApp(),
       ),

@@ -34,7 +34,7 @@ Gut Journey keeps everything in one place, fully on your device.
 | History calendar with back-filling | ✅ |
 | Statistics: trends, distributions, summaries | ✅ |
 | Italian + English | ✅ |
-| Backup & restore | 🔮 Planned |
+| Backup & restore (database file + JSON export) | ✅ |
 | PDF export for your doctor | 🔮 Planned |
 | Food ↔ symptom correlation insights | 🔮 Planned |
 | Low FODMAP reintroduction-phase module | 🔮 Planned |
