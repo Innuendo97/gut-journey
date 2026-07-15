@@ -13,6 +13,20 @@ and this project adheres to
 - **Backup & restore** in Settings: export the whole database as a backup
   file, export all data as JSON, and restore a previously exported backup
   (validated, migrated to the current schema, and applied atomically).
+- **App identity**: launcher icon (adaptive + monochrome), splash screen
+  (light/dark, Android 12+), the brand mark on onboarding, and the launcher
+  name "Gut Journey".
+- A visible **Delete button (with undo)** when editing an entry — swipe to
+  delete still works everywhere.
+- History calendar markers are now **colored by tracker category**
+  (nutrition, gut signals, therapy, body & lifestyle).
+
+### Fixed
+
+- Meal-type labels no longer truncate in Italian ("Colazione", "Spuntino"…):
+  the selector is now a row of wrapping icon chips.
+- Sleep quality in the timeline reads "Quality 3/5" instead of a star string
+  that some fonts render as boxes.
 
 ## [0.1.0] - 2026-07-15
 

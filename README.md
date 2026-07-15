@@ -23,6 +23,12 @@ paper. That fragmentation makes it nearly impossible to spot correlations
 between food and symptoms, or to share a complete picture with a doctor.
 Gut Journey keeps everything in one place, fully on your device.
 
+## Screenshots
+
+| Today | History | Stats |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/today.png" alt="Today screen with the day timeline" width="260"> | <img src="docs/screenshots/history.png" alt="History calendar with per-category markers" width="260"> | <img src="docs/screenshots/stats.png" alt="Statistics dashboard" width="260"> |
+
 ## Features
 
 | Feature | Status |
