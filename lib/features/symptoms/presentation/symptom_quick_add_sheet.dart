@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/core/l10n/labels.dart';
 import 'package:gut_journey/core/providers/clock_provider.dart';
+import 'package:gut_journey/core/widgets/delete_entry_with_undo.dart';
 import 'package:gut_journey/core/widgets/sheet_scaffold.dart';
 import 'package:gut_journey/features/diary/presentation/diary_providers.dart';
 import 'package:gut_journey/features/symptoms/data/symptom_repository.dart';
@@ -81,6 +82,23 @@ class _SymptomQuickAddSheetState extends ConsumerState<SymptomQuickAddSheet> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  void _delete() {
+    final existing = widget.existing!;
+    final repo = ref.read(symptomRepositoryProvider);
+    deleteEntryWithUndo(
+      context,
+      delete: () => repo.deleteEntry(existing.id),
+      restore: () => repo.addEntry(
+        symptomTypeId: existing.symptomTypeId,
+        intensity: existing.intensity,
+        occurredAt: existing.occurredAt,
+        durationMinutes: existing.durationMinutes,
+        notes: existing.notes,
+      ),
+    );
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -90,6 +108,9 @@ class _SymptomQuickAddSheetState extends ConsumerState<SymptomQuickAddSheet> {
       title: widget.existing == null
           ? l10n.symptomSheetTitle
           : l10n.symptomSheetEditTitle,
+      destructiveAction: widget.existing == null
+          ? null
+          : DeleteEntryButton(onPressed: _saving ? null : _delete),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),

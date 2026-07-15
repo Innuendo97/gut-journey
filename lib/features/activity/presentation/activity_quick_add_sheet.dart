@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/core/l10n/labels.dart';
 import 'package:gut_journey/core/providers/clock_provider.dart';
+import 'package:gut_journey/core/widgets/delete_entry_with_undo.dart';
 import 'package:gut_journey/core/widgets/sheet_scaffold.dart';
 import 'package:gut_journey/features/activity/data/activity_repository.dart';
 import 'package:gut_journey/features/activity/domain/activity_entry.dart';
@@ -94,6 +95,23 @@ class _ActivityQuickAddSheetState extends ConsumerState<ActivityQuickAddSheet> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  void _delete() {
+    final existing = widget.existing!;
+    final repo = ref.read(activityRepositoryProvider);
+    deleteEntryWithUndo(
+      context,
+      delete: () => repo.delete(existing.id),
+      restore: () => repo.add(
+        name: existing.name,
+        durationMinutes: existing.durationMinutes,
+        effort: existing.effort,
+        occurredAt: existing.occurredAt,
+        notes: existing.notes,
+      ),
+    );
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -103,6 +121,9 @@ class _ActivityQuickAddSheetState extends ConsumerState<ActivityQuickAddSheet> {
       title: widget.existing == null
           ? l10n.activitySheetTitle
           : l10n.activitySheetEditTitle,
+      destructiveAction: widget.existing == null
+          ? null
+          : DeleteEntryButton(onPressed: _saving ? null : _delete),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),

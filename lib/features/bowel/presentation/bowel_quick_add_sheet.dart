@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/core/l10n/labels.dart';
 import 'package:gut_journey/core/providers/clock_provider.dart';
+import 'package:gut_journey/core/widgets/delete_entry_with_undo.dart';
 import 'package:gut_journey/core/widgets/sheet_scaffold.dart';
 import 'package:gut_journey/features/bowel/data/bowel_repository.dart';
 import 'package:gut_journey/features/bowel/domain/bowel_movement.dart';
@@ -83,6 +84,26 @@ class _BowelQuickAddSheetState extends ConsumerState<BowelQuickAddSheet> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  void _delete() {
+    final existing = widget.existing!;
+    final repo = ref.read(bowelRepositoryProvider);
+    deleteEntryWithUndo(
+      context,
+      delete: () => repo.delete(existing.id),
+      restore: () => repo.add(
+        bristolType: existing.bristolType,
+        occurredAt: existing.occurredAt,
+        urgency: existing.urgency,
+        pain: existing.pain,
+        blood: existing.blood,
+        mucus: existing.mucus,
+        incompleteEvacuation: existing.incompleteEvacuation,
+        notes: existing.notes,
+      ),
+    );
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -91,6 +112,9 @@ class _BowelQuickAddSheetState extends ConsumerState<BowelQuickAddSheet> {
       title: widget.existing == null
           ? l10n.bowelSheetTitle
           : l10n.bowelSheetEditTitle,
+      destructiveAction: widget.existing == null
+          ? null
+          : DeleteEntryButton(onPressed: _saving ? null : _delete),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),

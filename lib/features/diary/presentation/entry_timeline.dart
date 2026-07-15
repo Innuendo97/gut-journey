@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gut_journey/core/l10n/labels.dart';
+import 'package:gut_journey/core/widgets/delete_entry_with_undo.dart';
 import 'package:gut_journey/features/activity/data/activity_repository.dart';
 import 'package:gut_journey/features/activity/presentation/activity_quick_add_sheet.dart';
 import 'package:gut_journey/features/bowel/data/bowel_repository.dart';
@@ -83,7 +84,11 @@ class EntryTimeline extends ConsumerWidget {
                 ),
               ),
             ),
-            onDismissed: (_) => _deleteWithUndo(context, item),
+            onDismissed: (_) => deleteEntryWithUndo(
+              context,
+              delete: item.delete,
+              restore: item.restore,
+            ),
             child: ListTile(
               leading: Icon(item.icon),
               title: Text(item.title),
@@ -98,21 +103,6 @@ class EntryTimeline extends ConsumerWidget {
             ),
           ),
       ],
-    );
-  }
-
-  void _deleteWithUndo(BuildContext context, _TimelineItem item) {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    unawaited(item.delete());
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(l10n.entryDeleted),
-        action: SnackBarAction(
-          label: l10n.undo,
-          onPressed: () => unawaited(item.restore()),
-        ),
-      ),
     );
   }
 

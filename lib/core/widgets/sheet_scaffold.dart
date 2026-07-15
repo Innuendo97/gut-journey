@@ -22,6 +22,7 @@ class SheetScaffold extends StatelessWidget {
     required this.title,
     required this.children,
     this.actions,
+    this.destructiveAction,
     super.key,
   });
 
@@ -31,6 +32,10 @@ class SheetScaffold extends StatelessWidget {
   /// Bottom action row; typically a save button. Omit for sheets that act
   /// instantly (e.g. medications).
   final List<Widget>? actions;
+
+  /// Pinned to the start of the actions row, visually separated from
+  /// Cancel/Save — e.g. Delete when editing an existing entry.
+  final Widget? destructiveAction;
 
   @override
   Widget build(BuildContext context) {
@@ -47,12 +52,14 @@ class SheetScaffold extends StatelessWidget {
               Text(title, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
               ...children,
-              if (actions != null) ...[
+              if (actions != null || destructiveAction != null) ...[
                 const SizedBox(height: 24),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    for (final (i, action) in actions!.indexed) ...[
+                    ?destructiveAction,
+                    const Spacer(),
+                    for (final (i, action)
+                        in (actions ?? const <Widget>[]).indexed) ...[
                       if (i > 0) const SizedBox(width: 8),
                       action,
                     ],

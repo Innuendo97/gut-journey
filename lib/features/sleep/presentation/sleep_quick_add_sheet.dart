@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
+import 'package:gut_journey/core/widgets/delete_entry_with_undo.dart';
 import 'package:gut_journey/core/widgets/sheet_scaffold.dart';
 import 'package:gut_journey/features/sleep/data/sleep_repository.dart';
 import 'package:gut_journey/features/sleep/domain/sleep_entry.dart';
@@ -50,6 +51,25 @@ class _SleepQuickAddSheetState extends ConsumerState<SleepQuickAddSheet> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  void _delete() {
+    final existing = widget.existing!;
+    final repo = ref.read(sleepRepositoryProvider);
+    final day = widget.day;
+    deleteEntryWithUndo(
+      context,
+      delete: () => repo.deleteForDay(day),
+      restore: () => repo.upsertForDay(
+        day: day,
+        durationMinutes: existing.durationMinutes,
+        bedAt: existing.bedAt,
+        wokeAt: existing.wokeAt,
+        quality: existing.quality,
+        notes: existing.notes,
+      ),
+    );
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -58,6 +78,9 @@ class _SleepQuickAddSheetState extends ConsumerState<SleepQuickAddSheet> {
 
     return SheetScaffold(
       title: l10n.sleepSheetTitle,
+      destructiveAction: widget.existing == null
+          ? null
+          : DeleteEntryButton(onPressed: _saving ? null : _delete),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),

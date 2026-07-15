@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/core/l10n/labels.dart';
 import 'package:gut_journey/core/providers/clock_provider.dart';
+import 'package:gut_journey/core/widgets/delete_entry_with_undo.dart';
 import 'package:gut_journey/core/widgets/sheet_scaffold.dart';
 import 'package:gut_journey/features/meals/data/food_repository.dart';
 import 'package:gut_journey/features/meals/data/meal_repository.dart';
@@ -124,6 +125,28 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  void _delete() {
+    final existing = widget.existing!;
+    final repo = ref.read(mealRepositoryProvider);
+    deleteEntryWithUndo(
+      context,
+      delete: () => repo.deleteMeal(existing.id),
+      restore: () => repo.createMeal(
+        type: existing.type,
+        occurredAt: existing.occurredAt,
+        items: [
+          for (final item in existing.items)
+            MealItemInput.existing(
+              foodItemId: item.food.id,
+              portionDescription: item.portionDescription,
+            ),
+        ],
+        notes: existing.notes,
+      ),
+    );
+    Navigator.of(context).pop();
+  }
+
   /// Today's entries happen "now"; back-filled days get a sensible default
   /// hour for the meal type.
   DateTime _occurredAtForNewEntry() {
@@ -148,6 +171,9 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
       title: widget.existing == null
           ? l10n.mealSheetTitle
           : l10n.mealSheetEditTitle,
+      destructiveAction: widget.existing == null
+          ? null
+          : DeleteEntryButton(onPressed: _saving ? null : _delete),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
