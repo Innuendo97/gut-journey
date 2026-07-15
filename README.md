@@ -6,9 +6,7 @@
 > sleep and activity — and turn scattered notes into insight you can discuss
 > with your doctor.
 
-<!-- CI badge: update the repo path after publishing to GitHub.
-[![CI](https://github.com/USER/gut-journey/actions/workflows/ci.yaml/badge.svg)](https://github.com/USER/gut-journey/actions/workflows/ci.yaml)
--->
+[![CI](https://github.com/Innuendo97/gut-journey/actions/workflows/ci.yaml/badge.svg)](https://github.com/Innuendo97/gut-journey/actions/workflows/ci.yaml)
 
 ## ⚠️ Medical disclaimer
 
