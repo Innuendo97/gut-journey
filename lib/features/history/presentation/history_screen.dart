@@ -72,11 +72,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               formatButtonVisible: false,
               titleCentered: true,
             ),
+            calendarBuilders: CalendarBuilders(
+              markerBuilder: _buildDayMarkers,
+            ),
             calendarStyle: CalendarStyle(
-              markerDecoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
               todayDecoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.secondaryContainer,
                 shape: BoxShape.circle,
@@ -96,6 +95,50 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           ),
           const Divider(height: 1),
           Expanded(child: DiaryDayBody(day: selected)),
+        ],
+      ),
+    );
+  }
+
+  /// One small dot per tracker category (fixed order, max four), instead of
+  /// the single undifferentiated marker.
+  Widget? _buildDayMarkers(
+    BuildContext context,
+    DateTime day,
+    List<TrackerKind> events,
+  ) {
+    if (events.isEmpty) return null;
+    final scheme = Theme.of(context).colorScheme;
+    final kinds = events.toSet();
+    final colors = <Color>[
+      // Nutrition
+      if (kinds.contains(TrackerKind.meal) || kinds.contains(TrackerKind.water))
+        scheme.primary,
+      // Gut signals
+      if (kinds.contains(TrackerKind.symptom) ||
+          kinds.contains(TrackerKind.bowel))
+        scheme.error,
+      // Therapy
+      if (kinds.contains(TrackerKind.medication)) scheme.tertiary,
+      // Body & lifestyle
+      if (kinds.contains(TrackerKind.weight) ||
+          kinds.contains(TrackerKind.sleep) ||
+          kinds.contains(TrackerKind.activity))
+        scheme.secondary,
+    ];
+    return Positioned(
+      bottom: 4,
+      child: Row(
+        key: ValueKey('history-markers-${LocalDay.fromDateTime(day).value}'),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final color in colors)
+            Container(
+              width: 5,
+              height: 5,
+              margin: const EdgeInsets.symmetric(horizontal: 1),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
         ],
       ),
     );

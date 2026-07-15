@@ -31,6 +31,25 @@ void main() {
     expect(find.text('250 ml'), findsOneWidget);
   });
 
+  testApp("calendar markers appear and disappear with the day's entries", (
+    tester,
+    harness,
+  ) async {
+    await usePhonePortraitSurface(tester);
+    // FixedClock pins today to 2026-07-14.
+    const markerKey = ValueKey('history-markers-2026-07-14');
+    await tapQuickAdd(tester, 'Water');
+
+    await tester.tap(find.text('History'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(markerKey), findsOneWidget);
+
+    // Swipe-delete from History's own day view: the dot row reacts too.
+    await tester.drag(find.text('250 ml'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    expect(find.byKey(markerKey), findsNothing);
+  });
+
   testApp('selecting a past day shows its (empty) diary for back-filling', (
     tester,
     harness,
