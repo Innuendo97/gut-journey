@@ -130,9 +130,24 @@ class _SymptomQuickAddSheetState extends ConsumerState<SymptomQuickAddSheet> {
         const SizedBox(height: 8),
         SegmentedButton<int>(
           segments: [
-            ButtonSegment(value: 3, label: Text(l10n.intensityMild)),
-            ButtonSegment(value: 5, label: Text(l10n.intensityModerate)),
-            ButtonSegment(value: 8, label: Text(l10n.intensitySevere)),
+            ButtonSegment(
+              value: 3,
+              label: Text(l10n.intensityMild, overflow: TextOverflow.ellipsis),
+            ),
+            ButtonSegment(
+              value: 5,
+              label: Text(
+                l10n.intensityModerate,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            ButtonSegment(
+              value: 8,
+              label: Text(
+                l10n.intensitySevere,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
           selected: {3, 5, 8}.contains(_intensity) ? {_intensity} : <int>{},
           emptySelectionAllowed: true,

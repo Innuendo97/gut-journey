@@ -11,8 +11,8 @@ import 'package:gut_journey/features/diary/domain/diary_day.dart';
 import 'package:gut_journey/features/diary/presentation/diary_providers.dart';
 import 'package:gut_journey/features/meals/data/meal_repository.dart';
 import 'package:gut_journey/features/meals/domain/meal_entry.dart';
-import 'package:gut_journey/features/meals/domain/meal_type.dart';
 import 'package:gut_journey/features/meals/presentation/meal_quick_add_sheet.dart';
+import 'package:gut_journey/features/meals/presentation/meal_type_icon.dart';
 import 'package:gut_journey/features/medications/data/medication_repository.dart';
 import 'package:gut_journey/features/medications/domain/medication.dart';
 import 'package:gut_journey/features/sleep/data/sleep_repository.dart';
@@ -150,7 +150,7 @@ class EntryTimeline extends ConsumerWidget {
         _TimelineItem(
           id: meal.id,
           sortKey: meal.occurredAt,
-          icon: _mealIcon(meal.type),
+          icon: mealTypeIcon(meal.type),
           title: l10n.mealTypeLabel(meal.type),
           subtitle: meal.items.isEmpty
               ? meal.notes
@@ -345,12 +345,4 @@ class EntryTimeline extends ConsumerWidget {
         ),
     ];
   }
-
-  static IconData _mealIcon(MealType type) => switch (type) {
-    MealType.breakfast => Icons.free_breakfast_outlined,
-    MealType.lunch => Icons.lunch_dining_outlined,
-    MealType.dinner => Icons.dinner_dining_outlined,
-    MealType.snack => Icons.cookie_outlined,
-    MealType.drink => Icons.local_cafe_outlined,
-  };
 }

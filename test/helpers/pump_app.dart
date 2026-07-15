@@ -48,6 +48,9 @@ void testApp(
   String description,
   Future<void> Function(WidgetTester tester, TestHarness harness) body, {
   bool onboarded = true,
+  // Forces the app language (e.g. 'it') by pre-seeding the persisted
+  // setting, without driving the language picker UI.
+  String? localeTag,
   // Riverpod 3 does not export the Override type, so it is inexpressible
   // here; the values must still be provider overrides.
   List<Object> overrides = const [],
@@ -56,6 +59,7 @@ void testApp(
     SharedPreferences.setMockInitialValues({
       // Most tests exercise the diary, not the disclaimer gate.
       if (onboarded) 'onboarding_accepted': true,
+      'locale_tag': ?localeTag,
     });
     final prefs = await SharedPreferences.getInstance();
     final db = createTestDatabase();

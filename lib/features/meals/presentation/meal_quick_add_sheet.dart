@@ -9,6 +9,7 @@ import 'package:gut_journey/features/meals/data/meal_repository.dart';
 import 'package:gut_journey/features/meals/domain/food_item.dart';
 import 'package:gut_journey/features/meals/domain/meal_entry.dart';
 import 'package:gut_journey/features/meals/domain/meal_type.dart';
+import 'package:gut_journey/features/meals/presentation/meal_type_icon.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
 
 final foodSuggestionsProvider = FutureProvider.autoDispose
@@ -158,21 +159,23 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
         ),
       ],
       children: [
-        SegmentedButton<MealType>(
-          segments: [
+        // Chips instead of a SegmentedButton: five segments cannot fit the
+        // longer Italian labels on a phone, chips wrap to a second row.
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
             for (final type in MealType.values)
-              ButtonSegment(
-                value: type,
-                label: Text(
-                  l10n.mealTypeLabel(type),
-                  overflow: TextOverflow.ellipsis,
-                ),
+              ChoiceChip(
+                avatar: Icon(mealTypeIcon(type), size: 18),
+                label: Text(l10n.mealTypeLabel(type)),
+                selected: _type == type,
+                // The checkmark would overdraw the avatar; selection still
+                // reads through color and chip semantics.
+                showCheckmark: false,
+                onSelected: (_) => setState(() => _type = type),
               ),
           ],
-          selected: {_type},
-          showSelectedIcon: false,
-          onSelectionChanged: (selection) =>
-              setState(() => _type = selection.first),
         ),
         const SizedBox(height: 16),
         TextField(

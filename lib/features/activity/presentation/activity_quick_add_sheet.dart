@@ -154,7 +154,10 @@ class _ActivityQuickAddSheetState extends ConsumerState<ActivityQuickAddSheet> {
             for (final effort in Effort.values)
               ButtonSegment(
                 value: effort,
-                label: Text(l10n.effortName(effort)),
+                label: Text(
+                  l10n.effortName(effort),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
           ],
           selected: {_effort},
