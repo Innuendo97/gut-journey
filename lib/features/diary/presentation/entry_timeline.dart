@@ -289,7 +289,11 @@ class EntryTimeline extends ConsumerWidget {
             sleep.durationMinutes ~/ 60,
             sleep.durationMinutes % 60,
           ),
-          subtitle: sleep.quality != null ? '★' * sleep.quality! : null,
+          subtitle: switch (sleep.quality) {
+            // Readable and screen-reader friendly, unlike a run of stars.
+            final quality? => l10n.sleepQualityValue(quality),
+            null => null,
+          },
           onEdit: () => SleepQuickAddSheet.show(
             context,
             day: day,

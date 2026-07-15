@@ -263,6 +263,13 @@
       "goal": {"type": "int"}
     }
   },
+  "sleepQualityValue": "Quality {quality}/5",
+  "@sleepQualityValue": {
+    "placeholders": {
+      "quality": {"type": "int"}
+    }
+  },
+
   "backupExportDb": "Export backup",
   "backupExportDbSubtitle": "Save a full copy of your data (database file)",
   "backupExportJson": "Export data as JSON",

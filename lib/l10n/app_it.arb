@@ -177,6 +177,8 @@
   "languageSystem": "Sistema",
   "waterGoalSetting": "Obiettivo acqua giornaliero",
   "waterGoalValue": "{goal} ml",
+  "sleepQualityValue": "Qualità {quality}/5",
+
   "backupExportDb": "Esporta backup",
   "backupExportDbSubtitle": "Salva una copia completa dei tuoi dati (file database)",
   "backupExportJson": "Esporta dati in JSON",
