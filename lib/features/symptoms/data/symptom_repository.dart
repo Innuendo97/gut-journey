@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gut_journey/core/db/app_database.dart';
+import 'package:gut_journey/core/domain/date_range.dart';
 import 'package:gut_journey/core/domain/entry_id.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/core/providers/clock_provider.dart';
@@ -58,6 +59,19 @@ class SymptomRepository {
   Stream<List<SymptomEntry>> watchByDay(LocalDay day) {
     final statement = _db.select(_db.symptomEntries)
       ..where((t) => t.localDay.equals(day.value))
+      ..orderBy([(t) => OrderingTerm.asc(t.occurredAt)]);
+    return statement.watch().map(
+      (rows) => [for (final row in rows) row.toDomain()],
+    );
+  }
+
+  /// Entries of an inclusive day range, ordered chronologically — the read
+  /// path for period-wide analyses.
+  Stream<List<SymptomEntry>> watchByRange(DateRange range) {
+    final statement = _db.select(_db.symptomEntries)
+      ..where(
+        (t) => t.localDay.isBetweenValues(range.start.value, range.end.value),
+      )
       ..orderBy([(t) => OrderingTerm.asc(t.occurredAt)]);
     return statement.watch().map(
       (rows) => [for (final row in rows) row.toDomain()],

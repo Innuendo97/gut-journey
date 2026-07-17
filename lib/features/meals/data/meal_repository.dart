@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gut_journey/core/db/app_database.dart';
+import 'package:gut_journey/core/domain/date_range.dart';
 import 'package:gut_journey/core/domain/entry_id.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/core/providers/clock_provider.dart';
@@ -27,21 +28,35 @@ class MealRepository {
   /// Meals of a day with their foods, ordered chronologically. The joined
   /// watch re-emits when entries, items or the referenced foods change.
   Stream<List<MealEntry>> watchByDay(LocalDay day) {
-    final query =
-        _db.select(_db.mealEntries).join([
-            leftOuterJoin(
-              _db.mealEntryItems,
-              _db.mealEntryItems.mealEntryId.equalsExp(_db.mealEntries.id),
-            ),
-            leftOuterJoin(
-              _db.foodItems,
-              _db.foodItems.id.equalsExp(_db.mealEntryItems.foodItemId),
-            ),
-          ])
-          ..where(_db.mealEntries.localDay.equals(day.value))
-          ..orderBy([OrderingTerm.asc(_db.mealEntries.occurredAt)]);
+    final query = _joinedMeals()
+      ..where(_db.mealEntries.localDay.equals(day.value));
     return query.watch().map(_groupRows);
   }
+
+  /// Meals of an inclusive day range with their foods, ordered
+  /// chronologically — the read path for period-wide analyses.
+  Stream<List<MealEntry>> watchByRange(DateRange range) {
+    final query = _joinedMeals()
+      ..where(
+        _db.mealEntries.localDay.isBetweenValues(
+          range.start.value,
+          range.end.value,
+        ),
+      );
+    return query.watch().map(_groupRows);
+  }
+
+  JoinedSelectStatement<HasResultSet, dynamic> _joinedMeals() =>
+      _db.select(_db.mealEntries).join([
+        leftOuterJoin(
+          _db.mealEntryItems,
+          _db.mealEntryItems.mealEntryId.equalsExp(_db.mealEntries.id),
+        ),
+        leftOuterJoin(
+          _db.foodItems,
+          _db.foodItems.id.equalsExp(_db.mealEntryItems.foodItemId),
+        ),
+      ])..orderBy([OrderingTerm.asc(_db.mealEntries.occurredAt)]);
 
   Future<String> createMeal({
     required MealType type,

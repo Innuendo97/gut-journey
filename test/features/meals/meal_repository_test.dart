@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gut_journey/core/db/app_database.dart';
+import 'package:gut_journey/core/domain/date_range.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/features/meals/data/food_repository.dart';
 import 'package:gut_journey/features/meals/data/meal_repository.dart';
@@ -123,6 +124,35 @@ void main() {
       expect(moved.notes, 'moved');
     },
   );
+
+  test('watchByRange spans days inclusively in chronological order', () async {
+    await repo.createMeal(
+      type: MealType.dinner,
+      occurredAt: DateTime(2026, 7, 13, 20),
+      items: const [MealItemInput.newFood(name: 'Soup')],
+    );
+    await repo.createMeal(
+      type: MealType.breakfast,
+      occurredAt: DateTime(2026, 7, 12, 8),
+      items: const [MealItemInput.newFood(name: 'Oats')],
+    );
+    // One meal on each side of the range boundaries.
+    await repo.createMeal(
+      type: MealType.snack,
+      occurredAt: DateTime(2026, 7, 11, 17),
+      items: const [MealItemInput.newFood(name: 'Crackers')],
+    );
+    await repo.createMeal(
+      type: MealType.lunch,
+      occurredAt: lunchTime,
+      items: const [MealItemInput.newFood(name: 'Rice')],
+    );
+
+    final range = DateRange(LocalDay('2026-07-12'), LocalDay('2026-07-13'));
+    final meals = await repo.watchByRange(range).first;
+    expect(meals.map((m) => m.type), [MealType.breakfast, MealType.dinner]);
+    expect(meals.first.items.single.food.name, 'Oats');
+  });
 
   test('deleteMeal removes its items but not the library foods', () async {
     final id = await repo.createMeal(

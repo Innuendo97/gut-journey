@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gut_journey/core/db/app_database.dart';
+import 'package:gut_journey/core/domain/date_range.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/features/symptoms/data/symptom_repository.dart';
 import 'package:gut_journey/features/symptoms/domain/symptom_presets.dart';
@@ -44,6 +45,25 @@ void main() {
 
     final all = await repo.watchTypes(includeArchived: true).first;
     expect(all.map((t) => t.id), contains(custom.id));
+  });
+
+  test('watchByRange spans days inclusively in chronological order', () async {
+    for (final (moment, intensity) in [
+      (DateTime(2026, 7, 11, 22), 2), // before the range
+      (DateTime(2026, 7, 12, 9), 4),
+      (DateTime(2026, 7, 13, 21), 6),
+      (DateTime(2026, 7, 14, 8), 8), // after the range
+    ]) {
+      await repo.addEntry(
+        symptomTypeId: symptomPresetId('bloating'),
+        intensity: intensity,
+        occurredAt: moment,
+      );
+    }
+
+    final range = DateRange(LocalDay('2026-07-12'), LocalDay('2026-07-13'));
+    final entries = await repo.watchByRange(range).first;
+    expect(entries.map((e) => e.intensity), [4, 6]);
   });
 
   test('adds, updates and deletes entries with day bucketing', () async {
