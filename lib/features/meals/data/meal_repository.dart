@@ -112,6 +112,28 @@ class MealRepository {
     });
   }
 
+  /// The grams last logged for [foodItemId] (newest meal first) — the
+  /// prefill for the next time this food is picked.
+  Future<double?> lastAmountFor(String foodItemId) async {
+    final items = _db.mealEntryItems;
+    final meals = _db.mealEntries;
+    final query =
+        _db.select(items).join([
+            innerJoin(
+              meals,
+              meals.id.equalsExp(items.mealEntryId),
+              useColumns: false,
+            ),
+          ])
+          ..where(
+            items.foodItemId.equals(foodItemId) & items.amountG.isNotNull(),
+          )
+          ..orderBy([OrderingTerm.desc(meals.occurredAt)])
+          ..limit(1);
+    final row = await query.getSingleOrNull();
+    return row?.readTable(items).amountG;
+  }
+
   Future<void> deleteMeal(String id) async {
     // Items go with it via ON DELETE CASCADE.
     await (_db.delete(_db.mealEntries)..where((t) => t.id.equals(id))).go();

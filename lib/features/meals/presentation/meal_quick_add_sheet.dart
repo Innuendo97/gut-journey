@@ -16,6 +16,7 @@ import 'package:gut_journey/features/meals/domain/meal_entry.dart';
 import 'package:gut_journey/features/meals/domain/meal_type.dart';
 import 'package:gut_journey/features/meals/presentation/meal_type_icon.dart';
 import 'package:gut_journey/features/nutrition/data/nutrition_repository.dart';
+import 'package:gut_journey/features/nutrition/domain/nutrition_facts.dart';
 import 'package:gut_journey/features/nutrition/presentation/food_nutrition_sheet.dart';
 import 'package:gut_journey/features/registry/data/food_registry_repository.dart';
 import 'package:gut_journey/features/registry/domain/registry_food.dart';
@@ -26,52 +27,65 @@ final foodSuggestionsProvider = FutureProvider.autoDispose
       (ref, query) => ref.watch(foodRepositoryProvider).suggest(query),
     );
 
-/// A food picked in the sheet: either from the library (has an id) or typed
-/// inline (library entry created on save).
+/// A food picked in the sheet: either from the library (has an [item]) or
+/// typed inline (library entry created on save). Each row owns its grams
+/// field; the legacy [quantity] multiplier only rides along for rows that
+/// came from historical meals.
 class _PickedFood {
-  const _PickedFood({
+  _PickedFood({
     required this.name,
-    this.foodItemId,
+    this.item,
     this.portionDescription,
-    this.quantity = 1,
-  });
+    this.quantity,
+    double? initialAmountG,
+  }) : amount = TextEditingController(
+         text: initialAmountG == null ? '' : _formatAmount(initialAmountG),
+       );
 
   final String name;
-  final String? foodItemId;
+  final FoodItem? item;
   final String? portionDescription;
 
-  /// Servings of this food, cycled by tapping the chip.
-  final double quantity;
+  /// Legacy serving multiplier of a historical row; never set for new picks.
+  final double? quantity;
 
-  /// Tap cycle ×1 → ×2 → ×½ → ×1; any other inherited value returns to 1.
-  _PickedFood cycleQuantity() => _PickedFood(
-    name: name,
-    foodItemId: foodItemId,
-    portionDescription: portionDescription,
-    quantity: quantity == 1
-        ? 2
-        : quantity == 2
-        ? 0.5
-        : 1,
-  );
+  /// The grams field of this row; empty means "amount unknown".
+  final TextEditingController amount;
+
+  /// Loaded lazily after the pick — drives the live kcal figure.
+  NutritionFacts? facts;
+
+  double? get amountG {
+    final parsed = double.tryParse(amount.text.trim().replaceAll(',', '.'));
+    return (parsed == null || parsed <= 0) ? null : parsed;
+  }
+
+  /// Live kcal via the same engine the aggregates use, so the row always
+  /// previews exactly what will count after save.
+  double? get kcal => facts?.kcalFor(amountG: amountG, quantity: quantity);
+
+  /// Whole numbers without the trailing `.0`, so 80.0 edits as "80".
+  static String _formatAmount(double value) =>
+      value == value.roundToDouble() ? '${value.round()}' : '$value';
 
   MealItemInput toInput() {
-    final id = foodItemId;
-    // One serving stays null in the database — the default needs no row
-    // value and older entries mean the same thing.
-    final storedQuantity = quantity == 1 ? null : quantity;
+    final id = item?.id;
     return id != null
         ? MealItemInput.existing(
             foodItemId: id,
             portionDescription: portionDescription,
-            quantity: storedQuantity,
+            quantity: quantity,
+            amountG: amountG,
           )
         : MealItemInput.newFood(
             name: name,
             portionDescription: portionDescription,
-            quantity: storedQuantity,
+            quantity: quantity,
+            amountG: amountG,
           );
   }
+
+  void dispose() => amount.dispose();
 }
 
 class MealQuickAddSheet extends ConsumerStatefulWidget {
@@ -101,6 +115,10 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
   var _query = '';
   var _saving = false;
 
+  /// Every row ever created, so removed rows still get their grams
+  /// controller disposed with the sheet.
+  final _created = <_PickedFood>[];
+
   @override
   void initState() {
     super.initState();
@@ -110,28 +128,29 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
       for (final item in existing?.items ?? const <MealItem>[])
         _PickedFood(
           name: item.food.name,
-          foodItemId: item.food.id,
+          item: item.food,
           portionDescription: item.portionDescription,
-          quantity: item.quantity ?? 1,
+          quantity: item.quantity,
+          initialAmountG: item.amountG,
         ),
     ];
+    _created.addAll(_picked);
+    for (final food in _picked) {
+      // Facts only — an edited meal must not have its amounts rewritten.
+      unawaited(_hydrate(food, prefill: false));
+    }
     _search = TextEditingController();
     _notes = TextEditingController(text: existing?.notes ?? '');
   }
 
   @override
   void dispose() {
+    for (final food in _created) {
+      food.dispose();
+    }
     _search.dispose();
     _notes.dispose();
     super.dispose();
-  }
-
-  /// ½ for half a serving, whole numbers without a decimal point.
-  static String _multiplier(double quantity) {
-    if (quantity == 0.5) return '½';
-    return quantity == quantity.roundToDouble()
-        ? '${quantity.round()}'
-        : '$quantity';
   }
 
   static MealType _guessTypeFor(DateTime now) {
@@ -147,9 +166,43 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
       (p) => p.name.toLowerCase() == food.name.toLowerCase(),
     );
     setState(() {
-      if (!alreadyPicked) _picked = [..._picked, food];
+      if (!alreadyPicked) {
+        _picked = [..._picked, food];
+        _created.add(food);
+        unawaited(_hydrate(food, prefill: true));
+      }
       _query = '';
       _search.clear();
+    });
+  }
+
+  /// Loads the food's facts for the live kcal figure; with [prefill], an
+  /// empty grams field gets the last amount logged for this food, falling
+  /// back to its typical serving weight.
+  Future<void> _hydrate(_PickedFood food, {required bool prefill}) async {
+    final item = food.item;
+    if (item == null) return;
+    final facts = await ref.read(nutritionRepositoryProvider).getFacts(item.id);
+    double? prefillAmount;
+    if (prefill && food.amount.text.isEmpty) {
+      prefillAmount =
+          await ref.read(mealRepositoryProvider).lastAmountFor(item.id) ??
+          facts.servingG;
+    }
+    if (!mounted) return;
+    setState(() {
+      food.facts = facts;
+      if (prefillAmount != null) {
+        food.amount.text = _PickedFood._formatAmount(prefillAmount);
+      }
+    });
+  }
+
+  /// Steps a row's grams by [delta], clamped at zero (empty field).
+  void _stepAmount(_PickedFood food, double delta) {
+    final next = ((food.amountG ?? 0) + delta).clamp(0.0, 9999.0);
+    setState(() {
+      food.amount.text = next <= 0 ? '' : _PickedFood._formatAmount(next);
     });
   }
 
@@ -166,7 +219,7 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
     final router = GoRouter.of(context);
     final newNames = [
       for (final food in _picked)
-        if (food.foodItemId == null) food.name,
+        if (food.item == null) food.name,
     ];
     final notes = _notes.text.trim().isEmpty ? null : _notes.text.trim();
     final items = [for (final food in _picked) food.toInput()];
@@ -263,6 +316,7 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
               foodItemId: item.food.id,
               portionDescription: item.portionDescription,
               quantity: item.quantity,
+              amountG: item.amountG,
             ),
         ],
         notes: existing.notes,
@@ -353,33 +407,26 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
             l10n.noFoodsSelected,
             style: Theme.of(context).textTheme.bodySmall,
           )
-        else
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: [
-              for (final food in _picked)
-                InputChip(
-                  label: Text(switch (food.quantity) {
-                    1 => food.name,
-                    final q =>
-                      '${food.name} '
-                          '${l10n.mealServingMultiplier(_multiplier(q))}',
-                  }),
-                  // Tap cycles the servings; the fast path (one serving)
-                  // needs no interaction at all.
-                  onPressed: () => setState(
-                    () => _picked = [
-                      for (final p in _picked)
-                        if (identical(p, food)) p.cycleQuantity() else p,
-                    ],
-                  ),
-                  onDeleted: () => setState(
-                    () => _picked = [..._picked]..remove(food),
+        else ...[
+          for (final food in _picked) _pickedRow(l10n, food),
+          if (_totalKcal() case final total?)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Text(
+                    l10n.mealTotalKcal(total.round()),
+                    key: ValueKey(total.round()),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
-            ],
-          ),
+              ),
+            ),
+        ],
         const SizedBox(height: 16),
         TextField(
           controller: _notes,
@@ -393,6 +440,121 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
     );
   }
 
+  /// Sum of the rows whose kcal are computable; null hides the total
+  /// entirely (no data ≠ zero, same rule as the Today card).
+  double? _totalKcal() {
+    final values = [for (final food in _picked) ?food.kcal];
+    if (values.isEmpty) return null;
+    var total = 0.0;
+    for (final kcal in values) {
+      total += kcal;
+    }
+    return total;
+  }
+
+  /// One picked food: name, compact grams field with ± stepper, live kcal
+  /// and remove — replacing the old ×½/×1/×2 cycling chips.
+  Widget _pickedRow(AppLocalizations l10n, _PickedFood food) {
+    final theme = Theme.of(context);
+    final kcal = food.kcal;
+    final facts = food.facts;
+    // Offer the editor when this row can't produce kcal: grams typed but
+    // no per-100g base, or no basis at all. An empty grams field on a
+    // per-100g food just wants a number typed, not the editor.
+    final needsValues =
+        kcal == null &&
+        food.item != null &&
+        facts != null &&
+        (food.amountG != null ? facts.per100 == null : !facts.hasKcalBasis);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  food.name,
+                  style: theme.textTheme.bodyLarge,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (needsValues)
+                  InkWell(
+                    onTap: () => unawaited(_editValues(food)),
+                    child: Text(
+                      l10n.nutritionAddValuesAction,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          _StepButton(
+            icon: Icons.remove,
+            tooltip: l10n.mealDecreaseAmount,
+            onStep: () => _stepAmount(food, -10),
+          ),
+          SizedBox(
+            width: 76,
+            child: TextField(
+              key: ValueKey('amount:${food.name}'),
+              controller: food.amount,
+              textAlign: TextAlign.end,
+              decoration: const InputDecoration(
+                isDense: true,
+                suffixText: 'g',
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+          ),
+          _StepButton(
+            icon: Icons.add,
+            tooltip: l10n.mealIncreaseAmount,
+            onStep: () => _stepAmount(food, 10),
+          ),
+          SizedBox(
+            width: 72,
+            child: Text(
+              kcal == null ? '—' : l10n.mealItemKcal(kcal.round()),
+              textAlign: TextAlign.end,
+              style: kcal == null
+                  ? theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    )
+                  : theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 18),
+            visualDensity: VisualDensity.compact,
+            tooltip: l10n.delete,
+            onPressed: () =>
+                setState(() => _picked = [..._picked]..remove(food)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Opens the nutrition editor for a picked food, then refreshes the row —
+  /// including the grams prefill, now that a serving weight may exist.
+  Future<void> _editValues(_PickedFood food) async {
+    final item = food.item;
+    if (item == null) return;
+    await FoodNutritionSheet.show(context, ref, food: item);
+    if (!mounted) return;
+    await _hydrate(food, prefill: true);
+  }
+
   /// Imports a registry food into the library (values included) and picks
   /// it like any existing food — zero extra taps over a normal suggestion.
   Future<void> _pickFromRegistry(RegistryFood food) async {
@@ -401,7 +563,7 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
         .read(foodRegistryRepositoryProvider)
         .importIntoLibrary(food, languageCode: languageCode);
     if (!mounted) return;
-    _addFood(_PickedFood(name: item.name, foodItemId: item.id));
+    _addFood(_PickedFood(name: item.name, item: item));
   }
 
   List<Widget> _buildSuggestions(
@@ -452,7 +614,7 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
               avatar: item.isFavorite ? const Icon(Icons.star, size: 18) : null,
               label: Text(item.name),
               onPressed: () =>
-                  _addFood(_PickedFood(name: item.name, foodItemId: item.id)),
+                  _addFood(_PickedFood(name: item.name, item: item)),
             ),
           for (final food in registryVisible)
             ActionChip(
@@ -464,4 +626,54 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
       ),
     ];
   }
+}
+
+/// A compact stepper button: tap steps once, long-press keeps stepping.
+class _StepButton extends StatefulWidget {
+  const _StepButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onStep,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onStep;
+
+  @override
+  State<_StepButton> createState() => _StepButtonState();
+}
+
+class _StepButtonState extends State<_StepButton> {
+  Timer? _repeat;
+
+  @override
+  void dispose() {
+    _repeat?.cancel();
+    super.dispose();
+  }
+
+  void _stop() {
+    _repeat?.cancel();
+    _repeat = null;
+  }
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onLongPressStart: (_) {
+      widget.onStep();
+      _repeat = Timer.periodic(
+        const Duration(milliseconds: 120),
+        (_) => widget.onStep(),
+      );
+    },
+    onLongPressEnd: (_) => _stop(),
+    onLongPressCancel: _stop,
+    child: IconButton(
+      icon: Icon(widget.icon, size: 20),
+      visualDensity: VisualDensity.compact,
+      tooltip: widget.tooltip,
+      onPressed: widget.onStep,
+    ),
+  );
 }

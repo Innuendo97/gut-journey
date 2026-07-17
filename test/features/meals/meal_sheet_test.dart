@@ -4,6 +4,8 @@ import 'package:gut_journey/features/meals/data/food_repository.dart';
 import 'package:gut_journey/features/meals/data/meal_repository.dart';
 import 'package:gut_journey/features/meals/domain/meal_entry.dart';
 import 'package:gut_journey/features/meals/domain/meal_type.dart';
+import 'package:gut_journey/features/nutrition/data/nutrition_repository.dart';
+import 'package:gut_journey/features/nutrition/domain/nutrition_facts.dart';
 
 import '../../helpers/pump_app.dart';
 
@@ -52,24 +54,84 @@ void main() {
     expect(find.text('Dinner'), findsOneWidget);
   });
 
-  testApp('tapping a picked chip cycles the servings that get saved', (
+  testApp('typing grams saves the amount and shows live kcal', (
     tester,
     harness,
   ) async {
     final foods = FoodRepository(harness.db, harness.clock.call);
-    await foods.create('Rice');
+    final nutrition = NutritionRepository(harness.db, foods);
+    final rice = await foods.create('Rice');
+    await nutrition.saveFacts(
+      rice.id,
+      const NutritionFacts(per100: Nutrients(kcal: 130)),
+    );
 
     await tapQuickAdd(tester, 'Meal');
-    await tapInSheet(tester, 'Rice'); // suggestion chip → picked at ×1
-    await tapInSheet(tester, 'Rice'); // picked chip → ×2
-    expect(find.text('Rice ×2'), findsOneWidget);
+    await tapInSheet(tester, 'Rice'); // suggestion chip → picked row
+    await tester.enterText(
+      find.byKey(const ValueKey('amount:Rice')),
+      '150',
+    );
+    await tester.pump();
+
+    // Row kcal and the meal total update as the amount is typed.
+    expect(find.text('~195 kcal'), findsOneWidget); // 130 × 150 / 100
+    expect(find.text('Estimated total: ~195 kcal'), findsOneWidget);
+
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
     await tapInSheet(tester, 'Save');
 
-    final items = await harness.db.select(harness.db.mealEntryItems).get();
-    expect(items.single.quantity, 2.0);
+    final item = await harness.db.select(harness.db.mealEntryItems).getSingle();
+    expect(item.amountG, 150.0);
+    expect(item.quantity, isNull); // new rows never use the multiplier
   });
 
-  testApp('the servings cycle reaches ×½ and wraps back to one', (
+  testApp('the amount prefills from the serving weight, then last use', (
+    tester,
+    harness,
+  ) async {
+    final foods = FoodRepository(harness.db, harness.clock.call);
+    final nutrition = NutritionRepository(harness.db, foods);
+    final pasta = await foods.create('Pasta');
+    await nutrition.saveFacts(
+      pasta.id,
+      const NutritionFacts(per100: Nutrients(kcal: 350), servingG: 80),
+    );
+
+    // Never logged → the typical serving weight prefills the field.
+    await tapQuickAdd(tester, 'Meal');
+    await tester.tap(find.widgetWithText(ActionChip, 'Pasta'));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('amount:Pasta')))
+          .controller
+          ?.text,
+      '80',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('amount:Pasta')),
+      '120',
+    );
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+    await tapInSheet(tester, 'Save');
+
+    // Logged once → the last amount wins over the serving weight.
+    await tapQuickAdd(tester, 'Meal');
+    await tester.tap(find.widgetWithText(ActionChip, 'Pasta'));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('amount:Pasta')))
+          .controller
+          ?.text,
+      '120',
+    );
+  });
+
+  testApp('the stepper buttons adjust the grams by ten', (
     tester,
     harness,
   ) async {
@@ -78,27 +140,48 @@ void main() {
 
     await tapQuickAdd(tester, 'Meal');
     await tapInSheet(tester, 'Rice');
-    await tapInSheet(tester, 'Rice');
-    await tapInSheet(tester, 'Rice ×2');
-    expect(find.text('Rice ×½'), findsOneWidget);
+    await tester.tap(find.byTooltip('Increase amount'));
+    await tester.pump();
+    await tester.tap(find.byTooltip('Increase amount'));
+    await tester.pump();
+    await tester.tap(find.byTooltip('Decrease amount'));
+    await tester.pump();
 
-    // One more tap wraps to a single serving — stored as null, the same
-    // meaning as every pre-existing item.
-    await tapInSheet(tester, 'Rice ×½');
-    expect(find.text('Rice'), findsOneWidget);
-    await tapInSheet(tester, 'Save');
-
-    final items = await harness.db.select(harness.db.mealEntryItems).get();
-    expect(items.single.quantity, isNull);
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('amount:Rice')))
+          .controller
+          ?.text,
+      '10',
+    );
   });
 
-  testApp('editing a meal keeps its quantity and portion description', (
+  testApp('a picked food without values offers the add-values link', (
     tester,
     harness,
   ) async {
+    final foods = FoodRepository(harness.db, harness.clock.call);
+    await foods.create('Rice');
+
+    await tapQuickAdd(tester, 'Meal');
+    await tapInSheet(tester, 'Rice');
+
+    expect(find.text('—'), findsOneWidget); // no kcal figure
+    await tapInSheet(tester, 'Add values');
+    // The per-100g editor opened for that food.
+    expect(find.text('kcal per 100 g'), findsOneWidget);
+  });
+
+  testApp('editing a historical meal keeps its legacy servings and shows '
+      'their kcal', (tester, harness) async {
     final foods = FoodRepository(harness.db, harness.clock.call);
     final meals = MealRepository(harness.db, foods, harness.clock.call);
+    final nutrition = NutritionRepository(harness.db, foods);
     final rice = await foods.create('Rice');
+    await nutrition.saveFacts(
+      rice.id,
+      const NutritionFacts(legacyPerServing: Nutrients(kcal: 220)),
+    );
     await meals.createMeal(
       type: MealType.lunch,
       occurredAt: DateTime(2026, 7, 14, 13),
@@ -114,11 +197,20 @@ void main() {
 
     await tester.tap(find.text('Lunch')); // timeline row → edit sheet
     await tester.pumpAndSettle();
-    expect(find.text('Rice ×2'), findsOneWidget);
+    // The legacy row shows its kcal (220 × 2) with an empty grams field.
+    expect(find.text('~440 kcal'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('amount:Rice')))
+          .controller
+          ?.text,
+      isEmpty,
+    );
     await tapInSheet(tester, 'Save'); // untouched round-trip
 
     final item = await harness.db.select(harness.db.mealEntryItems).getSingle();
     expect(item.quantity, 2.0);
+    expect(item.amountG, isNull);
     // Regression: the edit path used to drop the portion description.
     expect(item.portionDescription, '1 cup');
   });
@@ -176,17 +268,21 @@ void main() {
     expect(find.textContaining('no nutrition values'), findsNothing);
   });
 
-  testApp('undoing a delete from the edit sheet keeps the quantity', (
+  testApp('undoing a delete from the edit sheet keeps quantity and grams', (
     tester,
     harness,
   ) async {
     final foods = FoodRepository(harness.db, harness.clock.call);
     final meals = MealRepository(harness.db, foods, harness.clock.call);
     final rice = await foods.create('Rice');
+    final pasta = await foods.create('Pasta');
     await meals.createMeal(
       type: MealType.lunch,
       occurredAt: DateTime(2026, 7, 14, 13),
-      items: [MealItemInput.existing(foodItemId: rice.id, quantity: 2)],
+      items: [
+        MealItemInput.existing(foodItemId: rice.id, quantity: 2),
+        MealItemInput.existing(foodItemId: pasta.id, amountG: 120),
+      ],
     );
     await tester.pumpAndSettle();
 
@@ -196,7 +292,10 @@ void main() {
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
 
-    final item = await harness.db.select(harness.db.mealEntryItems).getSingle();
-    expect(item.quantity, 2.0);
+    final items = await harness.db.select(harness.db.mealEntryItems).get();
+    final byFood = {for (final i in items) i.foodItemId: i};
+    expect(byFood[rice.id]?.quantity, 2.0);
+    expect(byFood[rice.id]?.amountG, isNull);
+    expect(byFood[pasta.id]?.amountG, 120.0);
   });
 }

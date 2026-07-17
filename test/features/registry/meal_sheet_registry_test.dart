@@ -46,9 +46,22 @@ void main() {
       expect(byKey['serving_g'], '125.0');
       expect(byKey['origin'], 'registry:mozzarella-di-bufala@v1');
 
+      // The serving weight prefilled the grams row (125 g).
+      expect(
+        tester
+            .widget<TextField>(
+              find.byKey(const ValueKey('amount:Buffalo mozzarella')),
+            )
+            .controller
+            ?.text,
+        '125',
+      );
       await tapInSheet(tester, 'Save');
 
-      // No "add values" nudge fires: the food came with values.
+      // The day total picks the estimate up immediately (288 × 1.25)...
+      expect(find.text('Energy (estimated)'), findsOneWidget);
+      expect(find.text('360 kcal'), findsOneWidget);
+      // ...and no "add values" nudge fires: the food came with values.
       await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle();
       expect(find.textContaining('no nutrition values'), findsNothing);

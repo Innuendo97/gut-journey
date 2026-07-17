@@ -191,6 +191,7 @@ class EntryTimeline extends ConsumerWidget {
                     foodItemId: item.food.id,
                     portionDescription: item.portionDescription,
                     quantity: item.quantity,
+                    amountG: item.amountG,
                   ),
               ],
               notes: meal.notes,

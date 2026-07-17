@@ -490,13 +490,20 @@
       "kcal": {"type": "int"}
     }
   },
-  "mealServingMultiplier": "×{count}",
-  "@mealServingMultiplier": {
-    "description": "Servings multiplier suffix on a picked food chip",
+  "mealItemKcal": "~{kcal} kcal",
+  "@mealItemKcal": {
     "placeholders": {
-      "count": {"type": "String"}
+      "kcal": {"type": "int"}
     }
   },
+  "mealTotalKcal": "Estimated total: ~{kcal} kcal",
+  "@mealTotalKcal": {
+    "placeholders": {
+      "kcal": {"type": "int"}
+    }
+  },
+  "mealIncreaseAmount": "Increase amount",
+  "mealDecreaseAmount": "Decrease amount",
   "nutritionCardTitle": "Energy (estimated)",
   "nutritionKcalValue": "{kcal} kcal",
   "@nutritionKcalValue": {
