@@ -48,20 +48,20 @@ const _activities = [
   ('Cycling', 45, Effort.moderate),
 ];
 
-/// Plausible kcal-per-serving estimates for part of the demo library, so
-/// the Today card and the Stats energy chart have data in screenshots.
-/// Deliberately not all foods: partial tracking is the realistic state.
-const _kcalPerServing = [
-  ('Oat porridge', 220),
-  ('Eggs', 155),
-  ('Rice', 200),
-  ('Grilled chicken', 230),
-  ('Salmon', 280),
-  ('Potatoes', 180),
-  ('Quinoa', 190),
-  ('Banana', 90),
-  ('Rice noodles', 210),
-];
+/// Plausible per-100g profiles (kcal/100g, typical serving in grams) for
+/// part of the demo library, so the Today card, the Stats energy chart and
+/// the meal sheet's live kcal have data in screenshots. Deliberately not
+/// all foods: partial tracking is the realistic state.
+const _foodProfiles = <String, (int, int)>{
+  'Oat porridge': (88, 250),
+  'Eggs': (155, 100),
+  'Rice': (130, 150),
+  'Grilled chicken': (165, 140),
+  'Salmon': (208, 150),
+  'Potatoes': (87, 200),
+  'Quinoa': (120, 160),
+  'Rice noodles': (108, 180),
+};
 
 /// Fills ~10 days of realistic diary data through the real repositories the
 /// first time a DEMO_SEED build launches (no-op when data exists), and
@@ -117,7 +117,15 @@ Future<void> seedDemoInto(ProviderContainer container) async {
   ) => meals.createMeal(
     type: type,
     occurredAt: day.toDateTime().add(Duration(hours: hour)),
-    items: [for (final food in foods) MealItemInput.newFood(name: food)],
+    items: [
+      for (final food in foods)
+        // Profiled foods log their typical amount in grams; the rest stay
+        // amountless, like a hurried real entry.
+        MealItemInput.newFood(
+          name: food,
+          amountG: _foodProfiles[food]?.$2.toDouble(),
+        ),
+    ],
   );
 
   for (var i = 9; i >= 0; i--) {
@@ -195,13 +203,29 @@ Future<void> seedDemoInto(ProviderContainer container) async {
 
   // Nutrition estimates on the foods the meals above created.
   final foods = container.read(foodRepositoryProvider);
-  for (final (name, kcal) in _kcalPerServing) {
+  for (final MapEntry(key: name, value: (kcal100, servingG))
+      in _foodProfiles.entries) {
     final item = await foods.getOrCreateByName(name);
     await foods.setAttribute(
       foodItemId: item.id,
       source: nutritionAttributeSource,
-      key: nutritionKcalKey,
-      value: '$kcal',
+      key: nutritionKcal100Key,
+      value: '$kcal100',
+    );
+    await foods.setAttribute(
+      foodItemId: item.id,
+      source: nutritionAttributeSource,
+      key: nutritionServingGKey,
+      value: '$servingG',
     );
   }
+  // One food stays on the legacy per-serving base — the realistic mixed
+  // state after the v0.5 upgrade.
+  final banana = await foods.getOrCreateByName('Banana');
+  await foods.setAttribute(
+    foodItemId: banana.id,
+    source: nutritionAttributeSource,
+    key: nutritionKcalKey,
+    value: '90',
+  );
 }

@@ -99,6 +99,17 @@ void main() {
 
     await capture('today');
 
+    // The meal sheet with gram rows, live kcal and the estimated total.
+    await tester.tap(find.text('Meal'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ActionChip, 'Rice'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ActionChip, 'Salmon'));
+    await tester.pumpAndSettle();
+    await capture('meal_sheet');
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
     await capture('history');
