@@ -6,6 +6,8 @@ import 'package:gut_journey/core/widgets/empty_state.dart';
 import 'package:gut_journey/core/widgets/text_input_dialog.dart';
 import 'package:gut_journey/features/meals/data/food_repository.dart';
 import 'package:gut_journey/features/meals/domain/food_item.dart';
+import 'package:gut_journey/features/nutrition/presentation/food_nutrition_sheet.dart';
+import 'package:gut_journey/features/nutrition/presentation/nutrition_providers.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
 
 final foodLibraryProvider = StreamProvider.autoDispose
@@ -31,6 +33,7 @@ class _FoodLibraryScreenState extends ConsumerState<FoodLibraryScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final foods = ref.watch(foodLibraryProvider(_query));
+    final kcalByFood = ref.watch(kcalByFoodProvider).value ?? const {};
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.foodLibraryTitle)),
@@ -56,12 +59,15 @@ class _FoodLibraryScreenState extends ConsumerState<FoodLibraryScreen> {
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final food = items[index];
+                  final kcal = kcalByFood[food.id];
                   return ListTile(
                     title: Text(food.name),
                     subtitle: Text(
                       [
                         if (food.category != null) food.category!,
                         l10n.foodUsageCount(food.usageCount),
+                        if (kcal != null)
+                          l10n.nutritionFoodKcalSubtitle(kcal.round()),
                       ].join(' · '),
                     ),
                     leading: IconButton(
@@ -80,9 +86,23 @@ class _FoodLibraryScreenState extends ConsumerState<FoodLibraryScreen> {
                             ),
                       ),
                     ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () => unawaited(_delete(food)),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.local_fire_department_outlined,
+                          ),
+                          tooltip: l10n.nutritionEditFacts,
+                          onPressed: () => unawaited(
+                            FoodNutritionSheet.show(context, ref, food: food),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () => unawaited(_delete(food)),
+                        ),
+                      ],
                     ),
                     onTap: () => unawaited(_edit(food)),
                   );

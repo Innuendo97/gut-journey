@@ -458,5 +458,20 @@
 
   "moreFoodLibrary": "Food library",
   "moreMedications": "Medications",
-  "moreSettings": "Settings"
+  "moreSettings": "Settings",
+
+  "nutritionEditFacts": "Nutrition values",
+  "nutritionSheetDisclaimer": "Your own per-serving estimates, used for the daily energy total. Not medical or dietary advice — discuss targets with your doctor or dietitian.",
+  "nutritionKcalPerServing": "kcal per serving",
+  "nutritionServingDescription": "Typical serving (e.g. one bowl)",
+  "nutritionProteinLabel": "Protein",
+  "nutritionCarbsLabel": "Carbohydrates",
+  "nutritionFatLabel": "Fat",
+  "nutritionFiberLabel": "Fibre",
+  "nutritionFoodKcalSubtitle": "{kcal} kcal/serving",
+  "@nutritionFoodKcalSubtitle": {
+    "placeholders": {
+      "kcal": {"type": "int"}
+    }
+  }
 }

@@ -282,5 +282,15 @@
 
   "moreFoodLibrary": "Libreria alimenti",
   "moreMedications": "Farmaci",
-  "moreSettings": "Impostazioni"
+  "moreSettings": "Impostazioni",
+
+  "nutritionEditFacts": "Valori nutrizionali",
+  "nutritionSheetDisclaimer": "Stime personali per porzione, usate per il totale energetico del giorno. Non sono un consiglio medico o dietetico — discuti gli obiettivi con il tuo medico o dietista.",
+  "nutritionKcalPerServing": "kcal per porzione",
+  "nutritionServingDescription": "Porzione tipica (es. una ciotola)",
+  "nutritionProteinLabel": "Proteine",
+  "nutritionCarbsLabel": "Carboidrati",
+  "nutritionFatLabel": "Grassi",
+  "nutritionFiberLabel": "Fibre",
+  "nutritionFoodKcalSubtitle": "{kcal} kcal/porzione"
 }
