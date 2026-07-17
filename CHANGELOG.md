@@ -15,6 +15,12 @@ and this project adheres to
   often a symptom followed meals with it (within a selectable 4/8/24h
   window) against meals without it, always showing the raw counts. Patterns
   are observations to discuss with your doctor — never causes or advice.
+- **Low FODMAP reintroduction** (More tab): track the reintroduction plan
+  agreed with your clinician — test one FODMAP group at a time
+  (test → washout → outcome as observed in the diary), see which groups are
+  still to test, and tag your food library with its FODMAP groups.
+- First real schema migration (v1 → v2) with step-migration scaffolding and
+  migration tests: existing diaries upgrade in place, no data loss.
 
 ## [0.1.2] - 2026-07-17
 

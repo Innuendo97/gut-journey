@@ -43,7 +43,7 @@ Gut Journey keeps everything in one place, fully on your device.
 | Backup & restore (database file + JSON export) | ✅ |
 | PDF export for your doctor | ✅ |
 | Observed meal ↔ symptom patterns (time-window comparison) | ✅ |
-| Low FODMAP reintroduction-phase module | 🔮 Planned |
+| Low FODMAP reintroduction-phase module | ✅ |
 | Multi-device sync | 🔮 Planned |
 
 ## Design principles
