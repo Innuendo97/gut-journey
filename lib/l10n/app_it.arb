@@ -292,5 +292,6 @@
   "nutritionCarbsLabel": "Carboidrati",
   "nutritionFatLabel": "Grassi",
   "nutritionFiberLabel": "Fibre",
-  "nutritionFoodKcalSubtitle": "{kcal} kcal/porzione"
+  "nutritionFoodKcalSubtitle": "{kcal} kcal/porzione",
+  "mealServingMultiplier": "×{count}"
 }

@@ -21,16 +21,48 @@ final foodSuggestionsProvider = FutureProvider.autoDispose
 /// A food picked in the sheet: either from the library (has an id) or typed
 /// inline (library entry created on save).
 class _PickedFood {
-  const _PickedFood({required this.name, this.foodItemId});
+  const _PickedFood({
+    required this.name,
+    this.foodItemId,
+    this.portionDescription,
+    this.quantity = 1,
+  });
 
   final String name;
   final String? foodItemId;
+  final String? portionDescription;
+
+  /// Servings of this food, cycled by tapping the chip.
+  final double quantity;
+
+  /// Tap cycle ×1 → ×2 → ×½ → ×1; any other inherited value returns to 1.
+  _PickedFood cycleQuantity() => _PickedFood(
+    name: name,
+    foodItemId: foodItemId,
+    portionDescription: portionDescription,
+    quantity: quantity == 1
+        ? 2
+        : quantity == 2
+        ? 0.5
+        : 1,
+  );
 
   MealItemInput toInput() {
     final id = foodItemId;
+    // One serving stays null in the database — the default needs no row
+    // value and older entries mean the same thing.
+    final storedQuantity = quantity == 1 ? null : quantity;
     return id != null
-        ? MealItemInput.existing(foodItemId: id)
-        : MealItemInput.newFood(name: name);
+        ? MealItemInput.existing(
+            foodItemId: id,
+            portionDescription: portionDescription,
+            quantity: storedQuantity,
+          )
+        : MealItemInput.newFood(
+            name: name,
+            portionDescription: portionDescription,
+            quantity: storedQuantity,
+          );
   }
 }
 
@@ -68,7 +100,12 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
     _type = existing?.type ?? _guessTypeFor(ref.read(clockProvider)());
     _picked = [
       for (final item in existing?.items ?? const <MealItem>[])
-        _PickedFood(name: item.food.name, foodItemId: item.food.id),
+        _PickedFood(
+          name: item.food.name,
+          foodItemId: item.food.id,
+          portionDescription: item.portionDescription,
+          quantity: item.quantity ?? 1,
+        ),
     ];
     _search = TextEditingController();
     _notes = TextEditingController(text: existing?.notes ?? '');
@@ -79,6 +116,14 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
     _search.dispose();
     _notes.dispose();
     super.dispose();
+  }
+
+  /// ½ for half a serving, whole numbers without a decimal point.
+  static String _multiplier(double quantity) {
+    if (quantity == 0.5) return '½';
+    return quantity == quantity.roundToDouble()
+        ? '${quantity.round()}'
+        : '$quantity';
   }
 
   static MealType _guessTypeFor(DateTime now) {
@@ -139,6 +184,7 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
             MealItemInput.existing(
               foodItemId: item.food.id,
               portionDescription: item.portionDescription,
+              quantity: item.quantity,
             ),
         ],
         notes: existing.notes,
@@ -232,7 +278,20 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
             children: [
               for (final food in _picked)
                 InputChip(
-                  label: Text(food.name),
+                  label: Text(switch (food.quantity) {
+                    1 => food.name,
+                    final q =>
+                      '${food.name} '
+                          '${l10n.mealServingMultiplier(_multiplier(q))}',
+                  }),
+                  // Tap cycles the servings; the fast path (one serving)
+                  // needs no interaction at all.
+                  onPressed: () => setState(
+                    () => _picked = [
+                      for (final p in _picked)
+                        if (identical(p, food)) p.cycleQuantity() else p,
+                    ],
+                  ),
                   onDeleted: () => setState(
                     () => _picked = [..._picked]..remove(food),
                   ),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gut_journey/features/meals/data/food_repository.dart';
+import 'package:gut_journey/features/meals/data/meal_repository.dart';
+import 'package:gut_journey/features/meals/domain/meal_entry.dart';
 import 'package:gut_journey/features/meals/domain/meal_type.dart';
 
 import '../../helpers/pump_app.dart';
@@ -47,5 +50,100 @@ void main() {
     final meals = await harness.db.select(harness.db.mealEntries).get();
     expect(meals.single.mealType, MealType.dinner);
     expect(find.text('Dinner'), findsOneWidget);
+  });
+
+  testApp('tapping a picked chip cycles the servings that get saved', (
+    tester,
+    harness,
+  ) async {
+    final foods = FoodRepository(harness.db, harness.clock.call);
+    await foods.create('Rice');
+
+    await tapQuickAdd(tester, 'Meal');
+    await tapInSheet(tester, 'Rice'); // suggestion chip → picked at ×1
+    await tapInSheet(tester, 'Rice'); // picked chip → ×2
+    expect(find.text('Rice ×2'), findsOneWidget);
+    await tapInSheet(tester, 'Save');
+
+    final items = await harness.db.select(harness.db.mealEntryItems).get();
+    expect(items.single.quantity, 2.0);
+  });
+
+  testApp('the servings cycle reaches ×½ and wraps back to one', (
+    tester,
+    harness,
+  ) async {
+    final foods = FoodRepository(harness.db, harness.clock.call);
+    await foods.create('Rice');
+
+    await tapQuickAdd(tester, 'Meal');
+    await tapInSheet(tester, 'Rice');
+    await tapInSheet(tester, 'Rice');
+    await tapInSheet(tester, 'Rice ×2');
+    expect(find.text('Rice ×½'), findsOneWidget);
+
+    // One more tap wraps to a single serving — stored as null, the same
+    // meaning as every pre-existing item.
+    await tapInSheet(tester, 'Rice ×½');
+    expect(find.text('Rice'), findsOneWidget);
+    await tapInSheet(tester, 'Save');
+
+    final items = await harness.db.select(harness.db.mealEntryItems).get();
+    expect(items.single.quantity, isNull);
+  });
+
+  testApp('editing a meal keeps its quantity and portion description', (
+    tester,
+    harness,
+  ) async {
+    final foods = FoodRepository(harness.db, harness.clock.call);
+    final meals = MealRepository(harness.db, foods, harness.clock.call);
+    final rice = await foods.create('Rice');
+    await meals.createMeal(
+      type: MealType.lunch,
+      occurredAt: DateTime(2026, 7, 14, 13),
+      items: [
+        MealItemInput.existing(
+          foodItemId: rice.id,
+          portionDescription: '1 cup',
+          quantity: 2,
+        ),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Lunch')); // timeline row → edit sheet
+    await tester.pumpAndSettle();
+    expect(find.text('Rice ×2'), findsOneWidget);
+    await tapInSheet(tester, 'Save'); // untouched round-trip
+
+    final item = await harness.db.select(harness.db.mealEntryItems).getSingle();
+    expect(item.quantity, 2.0);
+    // Regression: the edit path used to drop the portion description.
+    expect(item.portionDescription, '1 cup');
+  });
+
+  testApp('undoing a delete from the edit sheet keeps the quantity', (
+    tester,
+    harness,
+  ) async {
+    final foods = FoodRepository(harness.db, harness.clock.call);
+    final meals = MealRepository(harness.db, foods, harness.clock.call);
+    final rice = await foods.create('Rice');
+    await meals.createMeal(
+      type: MealType.lunch,
+      occurredAt: DateTime(2026, 7, 14, 13),
+      items: [MealItemInput.existing(foodItemId: rice.id, quantity: 2)],
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Lunch'));
+    await tester.pumpAndSettle();
+    await tapInSheet(tester, 'Delete');
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+
+    final item = await harness.db.select(harness.db.mealEntryItems).getSingle();
+    expect(item.quantity, 2.0);
   });
 }

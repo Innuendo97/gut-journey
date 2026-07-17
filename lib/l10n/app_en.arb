@@ -473,5 +473,12 @@
     "placeholders": {
       "kcal": {"type": "int"}
     }
+  },
+  "mealServingMultiplier": "×{count}",
+  "@mealServingMultiplier": {
+    "description": "Servings multiplier suffix on a picked food chip",
+    "placeholders": {
+      "count": {"type": "String"}
+    }
   }
 }
