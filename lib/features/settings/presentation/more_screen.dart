@@ -26,6 +26,12 @@ class MoreScreen extends StatelessWidget {
             onTap: () => context.go(AppRoutes.moreMedications),
           ),
           ListTile(
+            leading: const Icon(Icons.science_outlined),
+            title: Text(l10n.fodmapTile),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go(AppRoutes.moreFodmap),
+          ),
+          ListTile(
             leading: const Icon(Icons.settings_outlined),
             title: Text(l10n.moreSettings),
             trailing: const Icon(Icons.chevron_right),

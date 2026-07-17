@@ -400,6 +400,55 @@
   "correlationsEmptyTitle": "No patterns to show yet",
   "correlationsEmptySubtitle": "Log meals and symptoms for a couple of weeks, then check back.",
 
+  "fodmapTile": "Low FODMAP reintroduction",
+  "fodmapGroupFructans": "Fructans",
+  "fodmapGroupGos": "GOS (galactans)",
+  "fodmapGroupLactose": "Lactose",
+  "fodmapGroupFructose": "Excess fructose",
+  "fodmapGroupSorbitol": "Sorbitol",
+  "fodmapGroupMannitol": "Mannitol",
+  "fodmapStatusTesting": "Testing",
+  "fodmapStatusWashout": "Washout",
+  "fodmapStatusCompleted": "Completed",
+  "fodmapStatusAbandoned": "Stopped",
+  "fodmapOutcomeNoSymptoms": "No symptoms observed",
+  "fodmapOutcomeSomeSymptoms": "Some symptoms observed",
+  "fodmapOutcomeMarkedSymptoms": "Marked symptoms observed",
+  "fodmapActiveTitle": "Current test",
+  "fodmapActiveDay": "Day {day}",
+  "@fodmapActiveDay": {
+    "placeholders": {
+      "day": {"type": "int"}
+    }
+  },
+  "fodmapStartedOn": "Started {day}",
+  "@fodmapStartedOn": {
+    "placeholders": {
+      "day": {"type": "String"}
+    }
+  },
+  "fodmapStartChallenge": "Start a test",
+  "fodmapMoveToWashout": "Start washout",
+  "fodmapRecordOutcome": "Record outcome",
+  "fodmapAbandon": "Stop",
+  "fodmapGroupsToTest": "Groups to test",
+  "fodmapHistoryTitle": "Past tests",
+  "fodmapTagFoods": "Tag foods with their FODMAP group",
+  "fodmapTagFoodsSubtitle": "Label your library with the groups agreed with your dietitian",
+  "fodmapNoGroup": "No group",
+  "fodmapSymptomsDuringTest": "Symptoms logged during the test",
+  "fodmapNoSymptomsDuringTest": "No symptoms logged during the test days.",
+  "fodmapSymptomTimes": "{count}× · up to intensity {intensity}",
+  "@fodmapSymptomTimes": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "intensity": {"type": "int"}
+    }
+  },
+  "fodmapDisclaimer": "This module records the reintroduction plan agreed with your clinician or dietitian. It never suggests diet changes — discuss each step with them.",
+  "fodmapEmptyTitle": "No tests yet",
+  "fodmapEmptySubtitle": "When your clinician starts reintroduction, track each FODMAP group test here.",
+
   "aboutSection": "About",
   "disclaimerSetting": "Medical disclaimer",
   "licensesSetting": "Open source licenses",

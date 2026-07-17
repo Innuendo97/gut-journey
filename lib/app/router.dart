@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:gut_journey/app/app_shell.dart';
 import 'package:gut_journey/features/correlations/presentation/correlations_screen.dart';
 import 'package:gut_journey/features/diary/presentation/today_screen.dart';
+import 'package:gut_journey/features/fodmap/presentation/fodmap_foods_screen.dart';
+import 'package:gut_journey/features/fodmap/presentation/fodmap_screen.dart';
 import 'package:gut_journey/features/history/presentation/history_screen.dart';
 import 'package:gut_journey/features/meals/presentation/food_library_screen.dart';
 import 'package:gut_journey/features/medications/domain/medication.dart';
@@ -23,6 +25,8 @@ abstract final class AppRoutes {
   static const statsCorrelations = '/stats/correlations';
   static const more = '/more';
   static const moreFoods = '/more/foods';
+  static const moreFodmap = '/more/fodmap';
+  static const moreFodmapFoods = '/more/fodmap/foods';
   static const moreMedications = '/more/medications';
   static const moreMedicationsNew = '/more/medications/new';
   static const moreSettings = '/more/settings';
@@ -90,6 +94,16 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'foods',
                     builder: (context, state) => const FoodLibraryScreen(),
+                  ),
+                  GoRoute(
+                    path: 'fodmap',
+                    builder: (context, state) => const FodmapScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'foods',
+                        builder: (context, state) => const FodmapFoodsScreen(),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'medications',

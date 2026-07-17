@@ -1,5 +1,7 @@
 import 'package:gut_journey/features/activity/domain/effort.dart';
 import 'package:gut_journey/features/correlations/domain/correlation_models.dart';
+import 'package:gut_journey/features/fodmap/domain/fodmap_challenge.dart';
+import 'package:gut_journey/features/fodmap/domain/fodmap_group.dart';
 import 'package:gut_journey/features/meals/domain/meal_type.dart';
 import 'package:gut_journey/features/symptoms/domain/symptom_type.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
@@ -39,6 +41,28 @@ extension DomainLabels on AppLocalizations {
         CorrelationStrength.moderate => correlationsStrengthModerate,
         CorrelationStrength.strong => correlationsStrengthStrong,
       };
+
+  String fodmapGroupLabel(FodmapGroup group) => switch (group) {
+    FodmapGroup.fructans => fodmapGroupFructans,
+    FodmapGroup.gos => fodmapGroupGos,
+    FodmapGroup.lactose => fodmapGroupLactose,
+    FodmapGroup.fructose => fodmapGroupFructose,
+    FodmapGroup.sorbitol => fodmapGroupSorbitol,
+    FodmapGroup.mannitol => fodmapGroupMannitol,
+  };
+
+  String challengeStatusLabel(ChallengeStatus status) => switch (status) {
+    ChallengeStatus.testing => fodmapStatusTesting,
+    ChallengeStatus.washout => fodmapStatusWashout,
+    ChallengeStatus.completed => fodmapStatusCompleted,
+    ChallengeStatus.abandoned => fodmapStatusAbandoned,
+  };
+
+  String observedOutcomeLabel(ObservedOutcome outcome) => switch (outcome) {
+    ObservedOutcome.noSymptoms => fodmapOutcomeNoSymptoms,
+    ObservedOutcome.someSymptoms => fodmapOutcomeSomeSymptoms,
+    ObservedOutcome.markedSymptoms => fodmapOutcomeMarkedSymptoms,
+  };
 
   /// Presets resolve through their language-independent key; custom types
   /// use the user's own name.
