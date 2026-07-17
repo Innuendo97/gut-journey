@@ -21,6 +21,9 @@ class MealEntryItems extends Table {
       text().references(FoodItems, #id, onDelete: KeyAction.restrict)();
   TextColumn get portionDescription => text().nullable()();
 
+  /// Number of typical servings eaten; null means one serving.
+  RealColumn get quantity => real().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }

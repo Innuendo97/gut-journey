@@ -39,7 +39,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -53,6 +53,12 @@ class AppDatabase extends _$AppDatabase {
       from1To2: (m, schema) async {
         await m.createTable(schema.fodmapChallenges);
         await m.createIndex(schema.idxFodmapChallengesStartDay);
+      },
+      from2To3: (m, schema) async {
+        await m.addColumn(
+          schema.mealEntryItems,
+          schema.mealEntryItems.quantity,
+        );
       },
     ),
     beforeOpen: (details) async {

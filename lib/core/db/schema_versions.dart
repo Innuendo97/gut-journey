@@ -1117,8 +1117,403 @@ i1.GeneratedColumn<String> _column_53(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NULL',
     );
+
+final class Schema3 extends i0.VersionedSchema {
+  Schema3({required super.database}) : super(version: 3);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    foodItems,
+    foodAttributes,
+    mealEntries,
+    mealEntryItems,
+    symptomTypes,
+    symptomEntries,
+    bowelEntries,
+    weightEntries,
+    waterEntries,
+    sleepEntries,
+    activityEntries,
+    medications,
+    medicationIntakes,
+    fodmapChallenges,
+    idxMealEntriesLocalDay,
+    idxMealEntriesOccurredAt,
+    idxSymptomEntriesLocalDay,
+    idxSymptomEntriesOccurredAt,
+    idxBowelEntriesLocalDay,
+    idxBowelEntriesOccurredAt,
+    idxWeightEntriesLocalDay,
+    idxWeightEntriesOccurredAt,
+    idxWaterEntriesLocalDay,
+    idxWaterEntriesOccurredAt,
+    idxSleepEntriesLocalDay,
+    idxActivityEntriesLocalDay,
+    idxActivityEntriesOccurredAt,
+    idxMedicationIntakesLocalDay,
+    idxMedicationIntakesOccurredAt,
+    idxFodmapChallengesStartDay,
+  ];
+  late final Shape0 foodItems = Shape0(
+    source: i0.VersionedTable(
+      entityName: 'food_items',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_3,
+        _column_4,
+        _column_5,
+        _column_6,
+        _column_7,
+        _column_8,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 foodAttributes = Shape1(
+    source: i0.VersionedTable(
+      entityName: 'food_attributes',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'PRIMARY KEY(id)',
+        'UNIQUE(food_item_id, source, "key")',
+      ],
+      columns: [_column_0, _column_9, _column_10, _column_11, _column_12],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape2 mealEntries = Shape2(
+    source: i0.VersionedTable(
+      entityName: 'meal_entries',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_13,
+        _column_14,
+        _column_8,
+        _column_15,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape14 mealEntryItems = Shape14(
+    source: i0.VersionedTable(
+      entityName: 'meal_entry_items',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [_column_0, _column_16, _column_17, _column_18, _column_54],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape4 symptomTypes = Shape4(
+    source: i0.VersionedTable(
+      entityName: 'symptom_types',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'PRIMARY KEY(id)',
+        'CHECK((preset_key IS NULL)!=(custom_name IS NULL))',
+      ],
+      columns: [_column_0, _column_19, _column_20, _column_21, _column_1],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape5 symptomEntries = Shape5(
+    source: i0.VersionedTable(
+      entityName: 'symptom_entries',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_13,
+        _column_14,
+        _column_8,
+        _column_22,
+        _column_23,
+        _column_24,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape6 bowelEntries = Shape6(
+    source: i0.VersionedTable(
+      entityName: 'bowel_entries',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_13,
+        _column_14,
+        _column_8,
+        _column_25,
+        _column_26,
+        _column_27,
+        _column_28,
+        _column_29,
+        _column_30,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape7 weightEntries = Shape7(
+    source: i0.VersionedTable(
+      entityName: 'weight_entries',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_13,
+        _column_14,
+        _column_8,
+        _column_31,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape8 waterEntries = Shape8(
+    source: i0.VersionedTable(
+      entityName: 'water_entries',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_13,
+        _column_14,
+        _column_8,
+        _column_32,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape9 sleepEntries = Shape9(
+    source: i0.VersionedTable(
+      entityName: 'sleep_entries',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_33,
+        _column_34,
+        _column_35,
+        _column_36,
+        _column_37,
+        _column_8,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape10 activityEntries = Shape10(
+    source: i0.VersionedTable(
+      entityName: 'activity_entries',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_13,
+        _column_14,
+        _column_8,
+        _column_38,
+        _column_36,
+        _column_39,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape11 medications = Shape11(
+    source: i0.VersionedTable(
+      entityName: 'medications',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_3,
+        _column_40,
+        _column_41,
+        _column_42,
+        _column_43,
+        _column_44,
+        _column_45,
+        _column_8,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape12 medicationIntakes = Shape12(
+    source: i0.VersionedTable(
+      entityName: 'medication_intakes',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_13,
+        _column_14,
+        _column_8,
+        _column_46,
+        _column_47,
+        _column_48,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape13 fodmapChallenges = Shape13(
+    source: i0.VersionedTable(
+      entityName: 'fodmap_challenges',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_49,
+        _column_47,
+        _column_43,
+        _column_50,
+        _column_51,
+        _column_52,
+        _column_53,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index idxMealEntriesLocalDay = i1.Index(
+    'idx_meal_entries_local_day',
+    'CREATE INDEX idx_meal_entries_local_day ON meal_entries (local_day)',
+  );
+  final i1.Index idxMealEntriesOccurredAt = i1.Index(
+    'idx_meal_entries_occurred_at',
+    'CREATE INDEX idx_meal_entries_occurred_at ON meal_entries (occurred_at)',
+  );
+  final i1.Index idxSymptomEntriesLocalDay = i1.Index(
+    'idx_symptom_entries_local_day',
+    'CREATE INDEX idx_symptom_entries_local_day ON symptom_entries (local_day)',
+  );
+  final i1.Index idxSymptomEntriesOccurredAt = i1.Index(
+    'idx_symptom_entries_occurred_at',
+    'CREATE INDEX idx_symptom_entries_occurred_at ON symptom_entries (occurred_at)',
+  );
+  final i1.Index idxBowelEntriesLocalDay = i1.Index(
+    'idx_bowel_entries_local_day',
+    'CREATE INDEX idx_bowel_entries_local_day ON bowel_entries (local_day)',
+  );
+  final i1.Index idxBowelEntriesOccurredAt = i1.Index(
+    'idx_bowel_entries_occurred_at',
+    'CREATE INDEX idx_bowel_entries_occurred_at ON bowel_entries (occurred_at)',
+  );
+  final i1.Index idxWeightEntriesLocalDay = i1.Index(
+    'idx_weight_entries_local_day',
+    'CREATE INDEX idx_weight_entries_local_day ON weight_entries (local_day)',
+  );
+  final i1.Index idxWeightEntriesOccurredAt = i1.Index(
+    'idx_weight_entries_occurred_at',
+    'CREATE INDEX idx_weight_entries_occurred_at ON weight_entries (occurred_at)',
+  );
+  final i1.Index idxWaterEntriesLocalDay = i1.Index(
+    'idx_water_entries_local_day',
+    'CREATE INDEX idx_water_entries_local_day ON water_entries (local_day)',
+  );
+  final i1.Index idxWaterEntriesOccurredAt = i1.Index(
+    'idx_water_entries_occurred_at',
+    'CREATE INDEX idx_water_entries_occurred_at ON water_entries (occurred_at)',
+  );
+  final i1.Index idxSleepEntriesLocalDay = i1.Index(
+    'idx_sleep_entries_local_day',
+    'CREATE INDEX idx_sleep_entries_local_day ON sleep_entries (local_day)',
+  );
+  final i1.Index idxActivityEntriesLocalDay = i1.Index(
+    'idx_activity_entries_local_day',
+    'CREATE INDEX idx_activity_entries_local_day ON activity_entries (local_day)',
+  );
+  final i1.Index idxActivityEntriesOccurredAt = i1.Index(
+    'idx_activity_entries_occurred_at',
+    'CREATE INDEX idx_activity_entries_occurred_at ON activity_entries (occurred_at)',
+  );
+  final i1.Index idxMedicationIntakesLocalDay = i1.Index(
+    'idx_medication_intakes_local_day',
+    'CREATE INDEX idx_medication_intakes_local_day ON medication_intakes (local_day)',
+  );
+  final i1.Index idxMedicationIntakesOccurredAt = i1.Index(
+    'idx_medication_intakes_occurred_at',
+    'CREATE INDEX idx_medication_intakes_occurred_at ON medication_intakes (occurred_at)',
+  );
+  final i1.Index idxFodmapChallengesStartDay = i1.Index(
+    'idx_fodmap_challenges_start_day',
+    'CREATE INDEX idx_fodmap_challenges_start_day ON fodmap_challenges (start_day)',
+  );
+}
+
+class Shape14 extends i0.VersionedTable {
+  Shape14({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get mealEntryId =>
+      columnsByName['meal_entry_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get foodItemId =>
+      columnsByName['food_item_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get portionDescription =>
+      columnsByName['portion_description']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<double> get quantity =>
+      columnsByName['quantity']! as i1.GeneratedColumn<double>;
+}
+
+i1.GeneratedColumn<double> _column_54(String aliasedName) =>
+    i1.GeneratedColumn<double>(
+      'quantity',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.double,
+      $customConstraints: 'NULL',
+    );
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
+  required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -1127,6 +1522,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from1To2(migrator, schema);
         return 2;
+      case 2:
+        final schema = Schema3(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from2To3(migrator, schema);
+        return 3;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -1135,6 +1535,7 @@ i0.MigrationStepWithVersion migrationSteps({
 
 i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
+  required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
 }) => i0.VersionedSchema.stepByStepHelper(
-  step: migrationSteps(from1To2: from1To2),
+  step: migrationSteps(from1To2: from1To2, from2To3: from2To3),
 );
