@@ -25,9 +25,9 @@ Gut Journey keeps everything in one place, fully on your device.
 
 ## Screenshots
 
-| Today | History | Stats | Patterns |
-| :---: | :---: | :---: | :---: |
-| <img src="docs/screenshots/today.png" alt="Today screen with the day timeline" width="200"> | <img src="docs/screenshots/history.png" alt="History calendar with per-category markers" width="200"> | <img src="docs/screenshots/stats.png" alt="Statistics dashboard" width="200"> | <img src="docs/screenshots/correlations.png" alt="Observed meal-symptom patterns" width="200"> |
+| Today | Meal entry | History | Stats | Patterns |
+| :---: | :---: | :---: | :---: | :---: |
+| <img src="docs/screenshots/today.png" alt="Today screen with the day timeline" width="160"> | <img src="docs/screenshots/meal_sheet.png" alt="Meal sheet with gram amounts and live calories" width="160"> | <img src="docs/screenshots/history.png" alt="History calendar with per-category markers" width="160"> | <img src="docs/screenshots/stats.png" alt="Statistics dashboard" width="160"> | <img src="docs/screenshots/correlations.png" alt="Observed meal-symptom patterns" width="160"> |
 
 ## Features
 
@@ -44,7 +44,7 @@ Gut Journey keeps everything in one place, fully on your device.
 | PDF export for your doctor | ✅ |
 | Observed meal ↔ symptom patterns (time-window comparison) | ✅ |
 | Low FODMAP reintroduction-phase module | ✅ |
-| Estimated calories per day (your own per-serving values, optional goal) | ✅ |
+| Estimated calories per day (per-100g values × gram amounts, optional goal) | ✅ |
 | Bundled food registry (~600 Mediterranean/Italian foods, importable estimates) | ✅ |
 | Multi-device sync | 🔮 Planned |
 

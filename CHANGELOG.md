@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Amounts in grams with dynamic per-100g calculation**: meal foods are
+  now logged with an explicit amount ("120 g of pasta") and calories are
+  computed live from each food's per-100g values — while typing, per row
+  and as an estimated meal total, with a compact macro line (protein,
+  carbs, fat, fiber). The grams field prefills with the last amount used
+  for that food, or its typical serving weight, so the quick flow still
+  needs zero typing.
+- The nutrition editor now works on the per-100g base plus a typical
+  serving weight, with a live serving preview; foods holding only the old
+  per-serving values get a one-tap conversion.
+- Timeline meal entries spell amounts out ("Rice 150 g, Salmon 120 g").
+
+### Changed
+
+- Registry imports store the asset's per-100g values directly (no more
+  rounding through a serving), and foods imported before this version are
+  upgraded automatically on first launch. Library subtitles show
+  kcal/100g.
+- The ×½/×1/×2 serving cycle on picked foods is gone, replaced by the
+  gram rows. Meals logged before this version keep their serving
+  multipliers and their calorie totals unchanged, forever.
+
 ## [0.4.0] - 2026-07-17
 
 ### Added
