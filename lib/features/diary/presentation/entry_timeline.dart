@@ -173,7 +173,7 @@ class EntryTimeline extends ConsumerWidget {
           title: l10n.mealTypeLabel(meal.type),
           subtitle: meal.items.isEmpty
               ? meal.notes
-              : meal.items.map((i) => i.food.name).join(', '),
+              : meal.items.map(_mealItemLabel).join(', '),
           timeLabel: timeOf(meal.occurredAt),
           onEdit: () => MealQuickAddSheet.show(
             context,
@@ -370,4 +370,15 @@ class EntryTimeline extends ConsumerWidget {
         ),
     ];
   }
+}
+
+/// "Pasta 120 g" when the amount is known, just the name otherwise —
+/// precise meals read from the timeline at a glance.
+String _mealItemLabel(MealItem item) {
+  final amount = item.amountG;
+  if (amount == null) return item.food.name;
+  final grams = amount == amount.roundToDouble()
+      ? '${amount.round()}'
+      : '$amount';
+  return '${item.food.name} $grams g';
 }

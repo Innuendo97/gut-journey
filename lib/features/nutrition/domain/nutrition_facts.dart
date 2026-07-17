@@ -75,6 +75,20 @@ class Nutrients {
     fiberG: fiberG == null ? null : fiberG! * factor,
   );
 
+  /// Field-wise sum where absent values count as absent, not zero — a
+  /// partial estimate stays visibly partial.
+  Nutrients operator +(Nutrients other) {
+    double? sum(double? a, double? b) =>
+        a == null ? b : (b == null ? a : a + b);
+    return Nutrients(
+      kcal: sum(kcal, other.kcal),
+      proteinG: sum(proteinG, other.proteinG),
+      carbsG: sum(carbsG, other.carbsG),
+      fatG: sum(fatG, other.fatG),
+      fiberG: sum(fiberG, other.fiberG),
+    );
+  }
+
   @override
   bool operator ==(Object other) =>
       other is Nutrients &&

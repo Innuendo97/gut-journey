@@ -504,6 +504,16 @@
   },
   "mealIncreaseAmount": "Increase amount",
   "mealDecreaseAmount": "Decrease amount",
+  "mealMacroSummary": "P {protein} · C {carbs} · F {fat} · Fb {fiber} (g)",
+  "@mealMacroSummary": {
+    "description": "Compact macro totals of the meal: protein, carbs, fat, fiber in grams",
+    "placeholders": {
+      "protein": {"type": "int"},
+      "carbs": {"type": "int"},
+      "fat": {"type": "int"},
+      "fiber": {"type": "int"}
+    }
+  },
   "nutritionCardTitle": "Energy (estimated)",
   "nutritionKcalValue": "{kcal} kcal",
   "@nutritionKcalValue": {

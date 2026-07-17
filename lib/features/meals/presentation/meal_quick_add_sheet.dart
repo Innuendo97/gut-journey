@@ -426,6 +426,24 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
                 ),
               ),
             ),
+          if (_totalMacros() case final macros?)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  l10n.mealMacroSummary(
+                    (macros.proteinG ?? 0).round(),
+                    (macros.carbsG ?? 0).round(),
+                    (macros.fatG ?? 0).round(),
+                    (macros.fiberG ?? 0).round(),
+                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
         ],
         const SizedBox(height: 16),
         TextField(
@@ -450,6 +468,27 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
       total += kcal;
     }
     return total;
+  }
+
+  /// Macro totals across the computable rows, or null when no row
+  /// contributes any macro — the compact "meal detail" line.
+  Nutrients? _totalMacros() {
+    Nutrients? total;
+    for (final food in _picked) {
+      final nutrients = food.facts?.nutrientsFor(
+        amountG: food.amountG,
+        quantity: food.quantity,
+      );
+      if (nutrients == null) continue;
+      total = total == null ? nutrients : total + nutrients;
+    }
+    if (total == null) return null;
+    final hasMacro =
+        total.proteinG != null ||
+        total.carbsG != null ||
+        total.fatG != null ||
+        total.fiberG != null;
+    return hasMacro ? total : null;
   }
 
   /// One picked food: name, compact grams field with ± stepper, live kcal

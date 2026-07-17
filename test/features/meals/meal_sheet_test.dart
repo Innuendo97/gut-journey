@@ -85,6 +85,37 @@ void main() {
     final item = await harness.db.select(harness.db.mealEntryItems).getSingle();
     expect(item.amountG, 150.0);
     expect(item.quantity, isNull); // new rows never use the multiplier
+
+    // The timeline subtitle spells the amount out.
+    expect(find.textContaining('Rice 150 g'), findsOneWidget);
+  });
+
+  testApp('the meal sheet shows compact macro totals when available', (
+    tester,
+    harness,
+  ) async {
+    final foods = FoodRepository(harness.db, harness.clock.call);
+    final nutrition = NutritionRepository(harness.db, foods);
+    final salmon = await foods.create('Salmon');
+    await nutrition.saveFacts(
+      salmon.id,
+      const NutritionFacts(
+        per100: Nutrients(
+          kcal: 208,
+          proteinG: 20,
+          carbsG: 0,
+          fatG: 13,
+          fiberG: 0,
+        ),
+        servingG: 150,
+      ),
+    );
+
+    await tapQuickAdd(tester, 'Meal');
+    await tapInSheet(tester, 'Salmon'); // prefills 150 g
+
+    // 150 g of salmon: 30 g protein, 19.5 → 20 g fat.
+    expect(find.text('P 30 · C 0 · F 20 · Fb 0 (g)'), findsOneWidget);
   });
 
   testApp('the amount prefills from the serving weight, then last use', (

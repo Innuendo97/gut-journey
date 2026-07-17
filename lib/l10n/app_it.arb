@@ -302,6 +302,7 @@
   "mealTotalKcal": "Totale stimato: ~{kcal} kcal",
   "mealIncreaseAmount": "Aumenta la quantità",
   "mealDecreaseAmount": "Riduci la quantità",
+  "mealMacroSummary": "P {protein} · C {carbs} · G {fat} · F {fiber} (g)",
   "nutritionCardTitle": "Energia (stimata)",
   "nutritionKcalValue": "{kcal} kcal",
   "nutritionKcalProgress": "{kcal} / {goal} kcal",
