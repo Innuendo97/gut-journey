@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Bundled food registry**: ~600 foods — Mediterranean and Southern-Italian
+  cuisine in depth, plus Italian and international staples — with average
+  per-100g values from standard nutrition tables and typical serving sizes.
+  Registry matches appear as book-icon suggestions while logging a meal and
+  in the new "Add food" sheet of the library; picking one imports it with
+  its estimated values (which stay fully editable — they are averages, not
+  advice). An automated test enforces the registry's structural accuracy
+  (schema, uniqueness, plausibility, energy consistency).
+- Saving a meal with a brand-new food now offers, via snackbar, to add its
+  nutrition values right away — without slowing the quick-entry flow.
+- Swiping a diary entry away now asks for confirmation first; undo stays
+  available after deletion.
+
 ## [0.3.0] - 2026-07-17
 
 ### Added

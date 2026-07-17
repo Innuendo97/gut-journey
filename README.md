@@ -45,6 +45,7 @@ Gut Journey keeps everything in one place, fully on your device.
 | Observed meal ↔ symptom patterns (time-window comparison) | ✅ |
 | Low FODMAP reintroduction-phase module | ✅ |
 | Estimated calories per day (your own per-serving values, optional goal) | ✅ |
+| Bundled food registry (~600 Mediterranean/Italian foods, importable estimates) | ✅ |
 | Multi-device sync | 🔮 Planned |
 
 ## Design principles
