@@ -54,3 +54,6 @@ flutter:
     # Roboto is embedded in the PDF report so free text (food names, custom
     # symptoms) renders beyond the base-14 fonts' WinAnsi coverage.
     - assets/fonts/
+    # Bundled food registry: ~600 foods with average per-100g values and
+    # typical servings (see test/features/registry/registry_asset_test.dart).
+    - assets/data/
