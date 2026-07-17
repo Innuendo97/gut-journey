@@ -11,6 +11,7 @@ import 'package:gut_journey/features/settings/data/settings_repository.dart';
 import 'package:gut_journey/features/stats/domain/daily_value.dart';
 import 'package:gut_journey/features/stats/presentation/stats_providers.dart';
 import 'package:gut_journey/features/stats/presentation/widgets/bristol_bar_chart.dart';
+import 'package:gut_journey/features/stats/presentation/widgets/chart_section.dart';
 import 'package:gut_journey/features/stats/presentation/widgets/daily_bars_chart.dart';
 import 'package:gut_journey/features/stats/presentation/widgets/intensity_line_chart.dart';
 import 'package:gut_journey/features/stats/presentation/widgets/weight_line_chart.dart';
@@ -84,7 +85,7 @@ class StatsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 8),
-          _ChartSection(
+          ChartSection(
             title: l10n.sectionSymptomIntensity,
             annotation: l10n.sectionSymptomIntensitySubtitle,
             isEmpty: orderedIntensity.isEmpty,
@@ -95,12 +96,12 @@ class StatsScreen extends ConsumerWidget {
               typesById: typesById,
             ),
           ),
-          _ChartSection(
+          ChartSection(
             title: l10n.sectionSymptomFrequency,
             isEmpty: frequency.isEmpty,
             child: _FrequencyRows(frequency: frequency, typesById: typesById),
           ),
-          _ChartSection(
+          ChartSection(
             title: l10n.sectionBristol,
             annotation: bristol.isEmpty
                 ? null
@@ -109,14 +110,14 @@ class StatsScreen extends ConsumerWidget {
             height: 180,
             child: BristolBarChart(counts: bristol),
           ),
-          _ChartSection(
+          ChartSection(
             title: l10n.sectionWeight,
             annotation: weight.isEmpty ? null : _weightSummary(l10n, weight),
             isEmpty: weight.isEmpty,
             height: 200,
             child: WeightLineChart(range: range, values: weight),
           ),
-          _ChartSection(
+          ChartSection(
             title: l10n.sectionWater,
             annotation: '${l10n.waterGoalLegend}: $waterGoal ml',
             isEmpty: water.isEmpty,
@@ -127,7 +128,7 @@ class StatsScreen extends ConsumerWidget {
               goal: waterGoal.toDouble(),
             ),
           ),
-          _ChartSection(
+          ChartSection(
             title: l10n.sectionSleep,
             annotation: sleep.isEmpty ? null : _sleepSummary(l10n, sleep),
             isEmpty: sleep.isEmpty,
@@ -140,13 +141,13 @@ class StatsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          _ChartSection(
+          ChartSection(
             title: l10n.sectionActivity,
             isEmpty: activity.isEmpty,
             height: 180,
             child: DailyBarsChart(range: range, values: activity),
           ),
-          _ChartSection(
+          ChartSection(
             title: l10n.sectionAdherence,
             isEmpty: !adherence.any((pair) => pair.$2.expectedDoses > 0),
             child: _AdherenceRows(adherence: adherence),
@@ -185,62 +186,6 @@ class StatsScreen extends ConsumerWidget {
     final totalMinutes = values.fold<double>(0, (sum, v) => sum + v.value);
     final avg = (totalMinutes / values.length).round();
     return l10n.sleepAverage(avg ~/ 60, avg % 60);
-  }
-}
-
-/// Card wrapper every section shares: title, optional annotation, and an
-/// empty state when there's nothing to draw yet.
-class _ChartSection extends StatelessWidget {
-  const _ChartSection({
-    required this.title,
-    required this.isEmpty,
-    required this.child,
-    this.annotation,
-    this.height,
-  });
-
-  final String title;
-  final String? annotation;
-  final bool isEmpty;
-  final double? height;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: theme.textTheme.titleSmall),
-            if (annotation != null && !isEmpty) ...[
-              const SizedBox(height: 2),
-              Text(
-                annotation!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-            const SizedBox(height: 12),
-            if (isEmpty)
-              Text(
-                AppLocalizations.of(context).statsEmptySection,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              )
-            else if (height != null)
-              SizedBox(height: height, child: child)
-            else
-              child,
-          ],
-        ),
-      ),
-    );
   }
 }
 
