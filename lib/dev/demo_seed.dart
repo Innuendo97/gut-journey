@@ -5,11 +5,13 @@ import 'package:gut_journey/core/providers/database_provider.dart';
 import 'package:gut_journey/features/activity/data/activity_repository.dart';
 import 'package:gut_journey/features/activity/domain/effort.dart';
 import 'package:gut_journey/features/bowel/data/bowel_repository.dart';
+import 'package:gut_journey/features/meals/data/food_repository.dart';
 import 'package:gut_journey/features/meals/data/meal_repository.dart';
 import 'package:gut_journey/features/meals/domain/meal_entry.dart';
 import 'package:gut_journey/features/meals/domain/meal_type.dart';
 import 'package:gut_journey/features/medications/data/medication_repository.dart';
 import 'package:gut_journey/features/medications/domain/medication_enums.dart';
+import 'package:gut_journey/features/nutrition/domain/nutrition_facts.dart';
 import 'package:gut_journey/features/onboarding/data/onboarding_state.dart';
 import 'package:gut_journey/features/settings/data/settings_repository.dart';
 import 'package:gut_journey/features/sleep/data/sleep_repository.dart';
@@ -44,6 +46,21 @@ const _activities = [
   ('Yoga', 25, Effort.light),
   ('Swimming', 40, Effort.moderate),
   ('Cycling', 45, Effort.moderate),
+];
+
+/// Plausible kcal-per-serving estimates for part of the demo library, so
+/// the Today card and the Stats energy chart have data in screenshots.
+/// Deliberately not all foods: partial tracking is the realistic state.
+const _kcalPerServing = [
+  ('Oat porridge', 220),
+  ('Eggs', 155),
+  ('Rice', 200),
+  ('Grilled chicken', 230),
+  ('Salmon', 280),
+  ('Potatoes', 180),
+  ('Quinoa', 190),
+  ('Banana', 90),
+  ('Rice noodles', 210),
 ];
 
 /// Fills ~10 days of realistic diary data through the real repositories the
@@ -174,5 +191,17 @@ Future<void> seedDemoInto(ProviderContainer container) async {
         scheduledTime: '08:00',
       );
     }
+  }
+
+  // Nutrition estimates on the foods the meals above created.
+  final foods = container.read(foodRepositoryProvider);
+  for (final (name, kcal) in _kcalPerServing) {
+    final item = await foods.getOrCreateByName(name);
+    await foods.setAttribute(
+      foodItemId: item.id,
+      source: nutritionAttributeSource,
+      key: nutritionKcalKey,
+      value: '$kcal',
+    );
   }
 }
