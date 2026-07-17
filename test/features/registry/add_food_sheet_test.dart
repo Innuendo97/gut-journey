@@ -79,9 +79,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // The nutrition editor opened for the new food.
-      expect(find.text('kcal per serving'), findsOneWidget);
+      expect(find.text('kcal per 100 g'), findsOneWidget);
       await tester.enterText(
-        find.widgetWithText(TextField, 'kcal per serving'),
+        find.widgetWithText(TextField, 'kcal per 100 g'),
         '55',
       );
       FocusManager.instance.primaryFocus?.unfocus();

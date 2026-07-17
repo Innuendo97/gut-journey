@@ -143,7 +143,7 @@ void main() {
     // The nutrition editor opened for that food; saving a value works.
     expect(find.text('Seitan burger'), findsWidgets);
     await tester.enterText(
-      find.widgetWithText(TextField, 'kcal per serving'),
+      find.widgetWithText(TextField, 'kcal per 100 g'),
       '320',
     );
     // Unfocus so the scroll view stops chasing the caret at the top and

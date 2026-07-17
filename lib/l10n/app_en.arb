@@ -462,7 +462,6 @@
 
   "nutritionEditFacts": "Nutrition values",
   "nutritionSheetDisclaimer": "Your own per-serving estimates, used for the daily energy total. Not medical or dietary advice — discuss targets with your doctor or dietitian.",
-  "nutritionKcalPerServing": "kcal per serving",
   "nutritionServingDescription": "Typical serving (e.g. one bowl)",
   "nutritionProteinLabel": "Protein",
   "nutritionCarbsLabel": "Carbohydrates",
@@ -477,6 +476,17 @@
   "nutritionFoodKcal100Subtitle": "{kcal} kcal/100g",
   "@nutritionFoodKcal100Subtitle": {
     "placeholders": {
+      "kcal": {"type": "int"}
+    }
+  },
+  "nutritionKcalPer100": "kcal per 100 g",
+  "nutritionServingWeightLabel": "Typical serving weight",
+  "nutritionLegacyDetected": "Per-serving values detected. Enter the serving weight and convert them to per-100 g values.",
+  "nutritionConvertAction": "Convert",
+  "nutritionServingPreview": "1 serving ({grams} g) ≈ {kcal} kcal",
+  "@nutritionServingPreview": {
+    "placeholders": {
+      "grams": {"type": "String"},
       "kcal": {"type": "int"}
     }
   },
