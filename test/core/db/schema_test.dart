@@ -45,6 +45,7 @@ void main() {
       'activity_entries',
       'medications',
       'medication_intakes',
+      'fodmap_challenges',
     };
     expect(names, containsAll(expectedTables));
 
@@ -54,10 +55,12 @@ void main() {
       'meal_entry_items',
       'symptom_types',
       'medications',
+      'fodmap_challenges',
     });
     for (final table in entryTablesWithDayIndex) {
       expect(names, contains('idx_${table}_local_day'));
     }
+    expect(names, contains('idx_fodmap_challenges_start_day'));
   });
 
   test('seeds one symptom type per preset key', () async {

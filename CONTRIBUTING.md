@@ -32,9 +32,19 @@ flutter test
   (see `test/helpers/`).
 - Any schema change bumps `schemaVersion`, ships a step migration, and adds a
   migration test. No exceptions, even pre-1.0: local-first apps must never eat
-  user data. After changing tables, export the new schema snapshot with
-  `dart run drift_dev schema dump lib/core/db/app_database.dart drift_schemas/`
-  and commit it (`drift_schemas/` holds one JSON per schema version).
+  user data. After changing tables, in order:
+  1. `dart run drift_dev schema dump lib/core/db/app_database.dart drift_schemas/`
+     and commit the new snapshot (`drift_schemas/` holds one JSON per version).
+  2. `dart run drift_dev schema steps drift_schemas/ lib/core/db/schema_versions.dart`
+     to regenerate the step-migration helpers, then wire the new step into
+     `onUpgrade: stepByStep(...)` in `app_database.dart`.
+  3. `dart run drift_dev schema generate --data-classes --companions drift_schemas/ test/generated/`
+     and add the scenario to `test/core/db/migration_test.dart` (end-state
+     validation + old data survives).
+
+  `lib/core/db/schema_versions.dart` and `test/generated/` come from the
+  drift CLI, not build_runner: they ARE committed, as the one exception to
+  the generated-files rule.
 - No hardcoded user-facing strings in widgets — add them to
   `lib/l10n/app_en.arb` (template) and `app_it.arb`.
 

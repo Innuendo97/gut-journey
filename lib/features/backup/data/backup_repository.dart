@@ -72,6 +72,7 @@ class BackupRepository {
     _db.sleepEntries,
     _db.activityEntries,
     _db.medicationIntakes,
+    _db.fodmapChallenges,
   ];
 
   /// A transaction-consistent snapshot of the database file.
