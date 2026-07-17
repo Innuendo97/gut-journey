@@ -21,8 +21,12 @@ class MealEntryItems extends Table {
       text().references(FoodItems, #id, onDelete: KeyAction.restrict)();
   TextColumn get portionDescription => text().nullable()();
 
-  /// Number of typical servings eaten; null means one serving.
+  /// Number of typical servings eaten; null means one serving. Legacy:
+  /// rows written since schema v4 use [amountG] and leave this null.
   RealColumn get quantity => real().nullable()();
+
+  /// Amount eaten in grams (ml for liquids); null means unknown.
+  RealColumn get amountG => real().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

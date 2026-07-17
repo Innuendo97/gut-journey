@@ -6,6 +6,7 @@ import 'package:gut_journey/core/db/app_database.dart';
 import '../../generated/schema.dart';
 import '../../generated/schema_v1.dart' as v1;
 import '../../generated/schema_v2.dart' as v2;
+import '../../generated/schema_v3.dart' as v3;
 
 /// Every schema bump gets its scenario here: local-first apps must never
 /// eat user data, so each migration is validated end-state AND replayed
@@ -22,7 +23,7 @@ void main() {
     final db = AppDatabase(connection);
     addTearDown(db.close);
 
-    await verifier.migrateAndValidate(db, 3);
+    await verifier.migrateAndValidate(db, 4);
   });
 
   test('migrates an empty v2 database to v3', () async {
@@ -31,6 +32,14 @@ void main() {
     addTearDown(db.close);
 
     await verifier.migrateAndValidate(db, 3);
+  });
+
+  test('migrates an empty v3 database to v4', () async {
+    final connection = await verifier.startAt(3);
+    final db = AppDatabase(connection);
+    addTearDown(db.close);
+
+    await verifier.migrateAndValidate(db, 4);
   });
 
   test('v1 diary data survives the migration to v2', () async {
@@ -171,5 +180,60 @@ void main() {
         .write(const MealEntryItemsCompanion(quantity: Value(2)));
     final updated = await db.select(db.mealEntryItems).getSingle();
     expect(updated.quantity, 2.0);
+  });
+
+  test('v3 diary data survives the migration to v4', () async {
+    const stamp = '2026-07-17T08:00:00.000Z';
+    final schema = await verifier.schemaAt(3);
+
+    final before = v3.DatabaseAtV3(schema.newConnection());
+    await before
+        .into(before.foodItems)
+        .insert(
+          v3.FoodItemsCompanion.insert(
+            id: 'food-1',
+            createdAt: stamp,
+            updatedAt: stamp,
+            name: 'Pasta',
+          ),
+        );
+    await before
+        .into(before.mealEntries)
+        .insert(
+          v3.MealEntriesCompanion.insert(
+            id: 'meal-1',
+            createdAt: stamp,
+            updatedAt: stamp,
+            occurredAt: stamp,
+            localDay: '2026-07-17',
+            mealType: 'dinner',
+          ),
+        );
+    await before
+        .into(before.mealEntryItems)
+        .insert(
+          v3.MealEntryItemsCompanion.insert(
+            id: 'item-1',
+            mealEntryId: 'meal-1',
+            foodItemId: 'food-1',
+            quantity: const Value(2),
+          ),
+        );
+    await before.close();
+
+    final db = AppDatabase(schema.newConnection());
+    addTearDown(db.close);
+    await verifier.migrateAndValidate(db, 4);
+
+    // The historical serving multiplier stays readable — legacy rows keep
+    // their meaning forever.
+    final item = await db.select(db.mealEntryItems).getSingle();
+    expect(item.quantity, 2.0);
+    // The new column arrives null (grams unknown) and writable.
+    expect(item.amountG, isNull);
+    await (db.update(db.mealEntryItems)..where((t) => t.id.equals('item-1')))
+        .write(const MealEntryItemsCompanion(amountG: Value(120)));
+    final updated = await db.select(db.mealEntryItems).getSingle();
+    expect(updated.amountG, 120.0);
   });
 }
