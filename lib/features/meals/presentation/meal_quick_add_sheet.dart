@@ -17,6 +17,8 @@ import 'package:gut_journey/features/meals/domain/meal_type.dart';
 import 'package:gut_journey/features/meals/presentation/meal_type_icon.dart';
 import 'package:gut_journey/features/nutrition/data/nutrition_repository.dart';
 import 'package:gut_journey/features/nutrition/presentation/food_nutrition_sheet.dart';
+import 'package:gut_journey/features/registry/data/food_registry_repository.dart';
+import 'package:gut_journey/features/registry/domain/registry_food.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
 
 final foodSuggestionsProvider = FutureProvider.autoDispose
@@ -288,6 +290,10 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final suggestions = ref.watch(foodSuggestionsProvider(_query));
+    final registryMatches =
+        ref.watch(registrySuggestionsProvider(_query)).value ??
+        const <RegistryFood>[];
+    final languageCode = Localizations.localeOf(context).languageCode;
 
     return SheetScaffold(
       title: widget.existing == null
@@ -340,7 +346,7 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
           },
         ),
         const SizedBox(height: 8),
-        ..._buildSuggestions(l10n, suggestions),
+        ..._buildSuggestions(l10n, suggestions, registryMatches, languageCode),
         const SizedBox(height: 16),
         if (_picked.isEmpty)
           Text(
@@ -387,9 +393,22 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
     );
   }
 
+  /// Imports a registry food into the library (values included) and picks
+  /// it like any existing food — zero extra taps over a normal suggestion.
+  Future<void> _pickFromRegistry(RegistryFood food) async {
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final item = await ref
+        .read(foodRegistryRepositoryProvider)
+        .importIntoLibrary(food, languageCode: languageCode);
+    if (!mounted) return;
+    _addFood(_PickedFood(name: item.name, foodItemId: item.id));
+  }
+
   List<Widget> _buildSuggestions(
     AppLocalizations l10n,
     AsyncValue<List<FoodItem>> suggestions,
+    List<RegistryFood> registryMatches,
+    String languageCode,
   ) {
     final pickedNames = {for (final f in _picked) f.name.toLowerCase()};
     final items = suggestions.value ?? const <FoodItem>[];
@@ -397,11 +416,24 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
       for (final item in items)
         if (!pickedNames.contains(item.name.toLowerCase())) item,
     ];
+    // Registry entries hide behind their personal twin: once imported (or
+    // shadowed by an own food of the same name) only the library chip shows.
+    final personalNames = {
+      for (final item in items) item.name.toLowerCase(),
+      ...pickedNames,
+    };
+    final registryVisible = [
+      for (final food in registryMatches)
+        if (!personalNames.contains(food.name(languageCode).toLowerCase()))
+          food,
+    ];
     final trimmedQuery = _query.trim();
     final hasExactMatch = items.any(
       (i) => i.name.toLowerCase() == trimmedQuery.toLowerCase(),
     );
-    if (visible.isEmpty && (trimmedQuery.isEmpty || hasExactMatch)) {
+    if (visible.isEmpty &&
+        registryVisible.isEmpty &&
+        (trimmedQuery.isEmpty || hasExactMatch)) {
       return const [];
     }
     return [
@@ -421,6 +453,12 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
               label: Text(item.name),
               onPressed: () =>
                   _addFood(_PickedFood(name: item.name, foodItemId: item.id)),
+            ),
+          for (final food in registryVisible)
+            ActionChip(
+              avatar: const Icon(Icons.menu_book_outlined, size: 18),
+              label: Text(food.name(languageCode)),
+              onPressed: () => unawaited(_pickFromRegistry(food)),
             ),
         ],
       ),
