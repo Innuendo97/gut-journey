@@ -12,6 +12,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('30 days'), findsOneWidget);
+    expect(find.byTooltip('Export PDF report'), findsOneWidget);
     expect(
       find.text('Not enough data yet — log a few days to see this.'),
       findsWidgets,

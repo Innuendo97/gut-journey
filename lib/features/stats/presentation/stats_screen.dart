@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gut_journey/core/l10n/labels.dart';
 import 'package:gut_journey/features/diary/presentation/diary_providers.dart';
 import 'package:gut_journey/features/medications/domain/adherence.dart';
 import 'package:gut_journey/features/medications/domain/medication.dart';
+import 'package:gut_journey/features/report/presentation/report_export_sheet.dart';
 import 'package:gut_journey/features/settings/data/settings_repository.dart';
 import 'package:gut_journey/features/stats/domain/daily_value.dart';
 import 'package:gut_journey/features/stats/presentation/stats_providers.dart';
@@ -49,7 +52,18 @@ class StatsScreen extends ConsumerWidget {
     };
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.tabStats)),
+      appBar: AppBar(
+        title: Text(l10n.tabStats),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+            tooltip: l10n.reportExportAction,
+            onPressed: () => unawaited(
+              showReportExportSheet(context, initialDays: period),
+            ),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
         children: [

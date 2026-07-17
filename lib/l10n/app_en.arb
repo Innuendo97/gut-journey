@@ -284,6 +284,61 @@
   "backupErrorInvalid": "This file is not a Gut Journey backup.",
   "backupErrorNewer": "This backup was created by a newer version of the app. Update the app and try again.",
 
+  "reportExportTile": "Report for your doctor (PDF)",
+  "reportExportTileSubtitle": "Summarize a period to share and discuss with your doctor",
+  "reportExportAction": "Export PDF report",
+  "reportSheetTitle": "PDF report",
+  "reportPeriodLabel": "Period",
+  "reportPeriodCustom": "Custom…",
+  "reportRangeValue": "{start} – {end}",
+  "@reportRangeValue": {
+    "placeholders": {
+      "start": {"type": "String"},
+      "end": {"type": "String"}
+    }
+  },
+  "reportIncludeDiary": "Include daily diary",
+  "reportIncludeDiarySubtitle": "Day-by-day entries for the period",
+  "reportShareAction": "Share",
+  "reportSaved": "Report saved",
+  "reportTitle": "Health diary report",
+  "reportGeneratedOn": "Generated on {date}",
+  "@reportGeneratedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "reportDisclaimer": "This report is a personal diary export, not a medical document. It does not provide medical advice, diagnosis or treatment — please discuss any observations with your doctor.",
+  "reportDailyLog": "Daily diary",
+  "reportNoData": "No data recorded in this period.",
+  "reportPage": "Page {page} of {total}",
+  "@reportPage": {
+    "placeholders": {
+      "page": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "reportColSymptom": "Symptom",
+  "reportColCount": "Count",
+  "reportColAvgIntensity": "Avg intensity (1–10)",
+  "reportColMedication": "Medication",
+  "reportColDoses": "Doses",
+  "reportColAdherence": "Adherence",
+  "reportWaterAvgPerDay": "average {consumed} / {goal} ml per day",
+  "@reportWaterAvgPerDay": {
+    "placeholders": {
+      "consumed": {"type": "int"},
+      "goal": {"type": "int"}
+    }
+  },
+  "reportActivitySummary": "{days} active days · {minutes} min total",
+  "@reportActivitySummary": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
+
   "aboutSection": "About",
   "disclaimerSetting": "Medical disclaimer",
   "licensesSetting": "Open source licenses",

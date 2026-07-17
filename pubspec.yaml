@@ -27,6 +27,9 @@ dependencies:
   intl: any
   json_annotation: ^4.12.0
   meta: ^1.17.0
+  # pdf 3.13 / printing 5.15 need Dart >=3.12; bump together with the SDK.
+  pdf: ^3.12.0
+  printing: ^5.14.3
   rxdart: ^0.28.0
   shared_preferences: ^2.5.5
   table_calendar: ^3.2.0
@@ -47,3 +50,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    # Roboto is embedded in the PDF report so free text (food names, custom
+    # symptoms) renders beyond the base-14 fonts' WinAnsi coverage.
+    - assets/fonts/

@@ -10,6 +10,7 @@ import 'package:gut_journey/core/providers/clock_provider.dart';
 import 'package:gut_journey/core/widgets/text_input_dialog.dart';
 import 'package:gut_journey/features/backup/data/backup_files.dart';
 import 'package:gut_journey/features/backup/data/backup_repository.dart';
+import 'package:gut_journey/features/report/presentation/report_export_sheet.dart';
 import 'package:gut_journey/features/settings/data/settings_repository.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
 
@@ -71,6 +72,12 @@ class SettingsScreen extends ConsumerWidget {
             title: Text(l10n.backupExportJson),
             subtitle: Text(l10n.backupExportJsonSubtitle),
             onTap: () => unawaited(_exportJson(context, ref)),
+          ),
+          ListTile(
+            leading: const Icon(Icons.picture_as_pdf_outlined),
+            title: Text(l10n.reportExportTile),
+            subtitle: Text(l10n.reportExportTileSubtitle),
+            onTap: () => unawaited(showReportExportSheet(context)),
           ),
           ListTile(
             leading: const Icon(Icons.settings_backup_restore),

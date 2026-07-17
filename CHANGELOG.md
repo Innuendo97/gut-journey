@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **PDF report for your doctor**: from Statistics or Settings, export a
+  report over 7/30/90 days or a custom period — summary sections (symptoms,
+  Bristol distribution, weight, water, sleep, activity, medication
+  adherence) plus an optional day-by-day diary — and share or save it.
+
 ## [0.1.1] - 2026-07-17
 
 ### Added
