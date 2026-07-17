@@ -508,5 +508,13 @@
   },
   "nutritionGoalDialogLabel": "Daily goal (0 = off)",
   "deleteConfirmTitle": "Delete this entry?",
-  "deleteConfirmBody": "The entry will be removed from your diary. You can still undo right after."
+  "deleteConfirmBody": "The entry will be removed from your diary. You can still undo right after.",
+  "nutritionNewFoodPrompt": "\"{name}\" has no nutrition values yet",
+  "@nutritionNewFoodPrompt": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "nutritionNewFoodsPrompt": "Some new foods have no nutrition values yet",
+  "nutritionAddValuesAction": "Add values"
 }

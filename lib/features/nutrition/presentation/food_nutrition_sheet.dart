@@ -23,10 +23,17 @@ class FoodNutritionSheet extends ConsumerStatefulWidget {
     BuildContext context,
     WidgetRef ref, {
     required FoodItem food,
+  }) => showWith(context, ref.read(nutritionRepositoryProvider), food: food);
+
+  /// Same, from a pre-captured repository — for callers whose `ref` may be
+  /// gone by the time this runs (e.g. a SnackBar action after a sheet
+  /// closed).
+  static Future<void> showWith(
+    BuildContext context,
+    NutritionRepository nutrition, {
+    required FoodItem food,
   }) async {
-    final initial = await ref
-        .read(nutritionRepositoryProvider)
-        .getFacts(food.id);
+    final initial = await nutrition.getFacts(food.id);
     if (!context.mounted) return;
     await showQuickAddSheet<void>(
       context: context,

@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:gut_journey/app/router.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/core/l10n/labels.dart';
 import 'package:gut_journey/core/providers/clock_provider.dart';
@@ -11,6 +15,8 @@ import 'package:gut_journey/features/meals/domain/food_item.dart';
 import 'package:gut_journey/features/meals/domain/meal_entry.dart';
 import 'package:gut_journey/features/meals/domain/meal_type.dart';
 import 'package:gut_journey/features/meals/presentation/meal_type_icon.dart';
+import 'package:gut_journey/features/nutrition/data/nutrition_repository.dart';
+import 'package:gut_journey/features/nutrition/presentation/food_nutrition_sheet.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
 
 final foodSuggestionsProvider = FutureProvider.autoDispose
@@ -148,6 +154,18 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
   Future<void> _save() async {
     setState(() => _saving = true);
     final repo = ref.read(mealRepositoryProvider);
+    // Captured before any await: the snackbar nudge below fires after this
+    // sheet is gone, when context and ref can no longer be used.
+    final foodsRepo = ref.read(foodRepositoryProvider);
+    final nutrition = ref.read(nutritionRepositoryProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    final navigator = Navigator.of(context);
+    final router = GoRouter.of(context);
+    final newNames = [
+      for (final food in _picked)
+        if (food.foodItemId == null) food.name,
+    ];
     final notes = _notes.text.trim().isEmpty ? null : _notes.text.trim();
     final items = [for (final food in _picked) food.toInput()];
     final existing = widget.existing;
@@ -168,6 +186,64 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
       );
     }
     if (mounted) Navigator.of(context).pop();
+    await _nudgeForMissingValues(
+      newNames,
+      foodsRepo,
+      nutrition,
+      messenger,
+      l10n,
+      navigator,
+      router,
+    );
+  }
+
+  /// Foods typed inline joined the library without nutrition values — offer
+  /// (never demand) to add them, keeping the quick-entry flow untouched.
+  static Future<void> _nudgeForMissingValues(
+    List<String> newNames,
+    FoodRepository foodsRepo,
+    NutritionRepository nutrition,
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+    NavigatorState navigator,
+    GoRouter router,
+  ) async {
+    if (newNames.isEmpty) return;
+    final withoutValues = <FoodItem>[];
+    for (final name in newNames) {
+      // Idempotent: resolves the row the save just created.
+      final item = await foodsRepo.getOrCreateByName(name);
+      final facts = await nutrition.getFacts(item.id);
+      if (facts.kcalPerServing == null) withoutValues.add(item);
+    }
+    if (withoutValues.isEmpty) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          withoutValues.length == 1
+              ? l10n.nutritionNewFoodPrompt(withoutValues.single.name)
+              : l10n.nutritionNewFoodsPrompt,
+        ),
+        action: SnackBarAction(
+          label: l10n.nutritionAddValuesAction,
+          onPressed: () {
+            if (withoutValues.length == 1) {
+              // The navigator outlives this sheet; its context is looked
+              // up synchronously inside this tap handler.
+              unawaited(
+                FoodNutritionSheet.showWith(
+                  navigator.context,
+                  nutrition,
+                  food: withoutValues.single,
+                ),
+              );
+            } else {
+              router.go(AppRoutes.moreFoods);
+            }
+          },
+        ),
+      ),
+    );
   }
 
   void _delete() {

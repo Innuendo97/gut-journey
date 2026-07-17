@@ -123,6 +123,59 @@ void main() {
     expect(item.portionDescription, '1 cup');
   });
 
+  testApp('a new inline food without values triggers the add-values nudge', (
+    tester,
+    harness,
+  ) async {
+    await tapQuickAdd(tester, 'Meal');
+    await tester.enterText(find.byType(TextField).first, 'Seitan burger');
+    await tester.pumpAndSettle();
+    await tapInSheet(tester, 'Add "Seitan burger"');
+    await tapInSheet(tester, 'Save');
+
+    expect(
+      find.text('"Seitan burger" has no nutrition values yet'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Add values'));
+    await tester.pumpAndSettle();
+    // The nutrition editor opened for that food; saving a value works.
+    expect(find.text('Seitan burger'), findsWidgets);
+    await tester.enterText(
+      find.widgetWithText(TextField, 'kcal per serving'),
+      '320',
+    );
+    // Unfocus so the scroll view stops chasing the caret at the top and
+    // the Save button can be scrolled into view.
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+    await tapInSheet(tester, 'Save');
+
+    final rows = await harness.db.select(harness.db.foodAttributes).get();
+    expect(rows.single.value, '320.0');
+  });
+
+  testApp('foods that already have values do not trigger the nudge', (
+    tester,
+    harness,
+  ) async {
+    final foods = FoodRepository(harness.db, harness.clock.call);
+    final rice = await foods.create('Rice');
+    await foods.setAttribute(
+      foodItemId: rice.id,
+      source: 'nutrition',
+      key: 'kcal_per_serving',
+      value: '200',
+    );
+
+    await tapQuickAdd(tester, 'Meal');
+    await tapInSheet(tester, 'Rice'); // existing suggestion, not inline
+    await tapInSheet(tester, 'Save');
+
+    expect(find.textContaining('no nutrition values'), findsNothing);
+  });
+
   testApp('undoing a delete from the edit sheet keeps the quantity', (
     tester,
     harness,

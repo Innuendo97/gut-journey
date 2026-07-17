@@ -55,6 +55,22 @@ void main() {
     await tapInSheet(tester, 'Save');
     expect(find.text('Rice'), findsOneWidget);
 
+    // The add-values nudge for the new inline food shows once its db
+    // lookups resolve (pump-driven under fake async); wait for it and
+    // clear it, so the delete snackbar below is neither queued behind it
+    // nor covered by it (root-messenger snackbars float above sheets).
+    for (var i = 0; i < 50 && find.byType(SnackBar).evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(
+      find.text('"Rice" has no nutrition values yet'),
+      findsOneWidget,
+    );
+    tester
+        .state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger).first)
+        .clearSnackBars();
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Lunch'));
     await tester.pumpAndSettle();
     await tapInSheet(tester, 'Delete');

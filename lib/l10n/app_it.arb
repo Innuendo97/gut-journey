@@ -305,5 +305,8 @@
   "nutritionGoalValue": "{kcal} kcal al giorno",
   "nutritionGoalDialogLabel": "Obiettivo giornaliero (0 = disattivato)",
   "deleteConfirmTitle": "Eliminare questa voce?",
-  "deleteConfirmBody": "La voce sarà rimossa dal diario. Potrai comunque annullare subito dopo."
+  "deleteConfirmBody": "La voce sarà rimossa dal diario. Potrai comunque annullare subito dopo.",
+  "nutritionNewFoodPrompt": "\"{name}\" non ha ancora valori nutrizionali",
+  "nutritionNewFoodsPrompt": "Alcuni nuovi alimenti non hanno ancora valori nutrizionali",
+  "nutritionAddValuesAction": "Aggiungi valori"
 }
