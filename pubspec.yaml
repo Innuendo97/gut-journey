@@ -4,7 +4,7 @@ description: >-
   disorders. Track meals, symptoms, bowel movements, weight, medications,
   water, sleep and activity — and turn them into insight.
 publish_to: 'none'
-version: 0.2.0+4
+version: 0.3.0+5
 
 environment:
   sdk: ^3.11.0
