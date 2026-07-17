@@ -154,6 +154,46 @@ void main() {
     expect(meals.first.items.single.food.name, 'Oats');
   });
 
+  test('serving quantity round-trips for both input kinds', () async {
+    final rice = await foods.create('Rice');
+    await repo.createMeal(
+      type: MealType.lunch,
+      occurredAt: lunchTime,
+      items: [
+        MealItemInput.existing(foodItemId: rice.id, quantity: 2),
+        const MealItemInput.newFood(name: 'Salmon', quantity: 0.5),
+        const MealItemInput.newFood(name: 'Bread'),
+      ],
+    );
+
+    final meal = (await repo.watchByDay(day).first).single;
+    double? quantityOf(String name) =>
+        meal.items.firstWhere((i) => i.food.name == name).quantity;
+    expect(quantityOf('Rice'), 2.0);
+    expect(quantityOf('Salmon'), 0.5);
+    // Unset quantity stays null (meaning one serving), not 1.0.
+    expect(quantityOf('Bread'), isNull);
+  });
+
+  test('updateMeal changes an item quantity', () async {
+    final rice = await foods.create('Rice');
+    final id = await repo.createMeal(
+      type: MealType.lunch,
+      occurredAt: lunchTime,
+      items: [MealItemInput.existing(foodItemId: rice.id, quantity: 2)],
+    );
+
+    await repo.updateMeal(
+      id: id,
+      type: MealType.lunch,
+      occurredAt: lunchTime,
+      items: [MealItemInput.existing(foodItemId: rice.id, quantity: 0.5)],
+    );
+
+    final meal = (await repo.watchByDay(day).first).single;
+    expect(meal.items.single.quantity, 0.5);
+  });
+
   test('deleteMeal removes its items but not the library foods', () async {
     final id = await repo.createMeal(
       type: MealType.lunch,

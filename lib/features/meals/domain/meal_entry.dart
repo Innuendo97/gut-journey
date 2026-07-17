@@ -28,6 +28,9 @@ abstract class MealItem with _$MealItem {
   const factory MealItem({
     required FoodItem food,
     String? portionDescription,
+
+    /// Number of typical servings eaten; null means one serving.
+    double? quantity,
   }) = _MealItem;
 
   factory MealItem.fromJson(Map<String, dynamic> json) =>
@@ -41,10 +44,12 @@ sealed class MealItemInput with _$MealItemInput {
   const factory MealItemInput.existing({
     required String foodItemId,
     String? portionDescription,
+    double? quantity,
   }) = ExistingFoodInput;
 
   const factory MealItemInput.newFood({
     required String name,
     String? portionDescription,
+    double? quantity,
   }) = NewFoodInput;
 }
