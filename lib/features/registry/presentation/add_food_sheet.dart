@@ -86,7 +86,7 @@ class _AddFoodSheetState extends ConsumerState<AddFoodSheet> {
             leading: const Icon(Icons.menu_book_outlined),
             title: Text(food.name(languageCode)),
             subtitle: Text(
-              '${l10n.nutritionFoodKcalSubtitle(food.kcalPerServing.round())}'
+              '${l10n.nutritionFoodKcal100Subtitle(food.kcal100.round())}'
               ' · ${food.categoryLabel(languageCode)}',
             ),
             onTap: () => unawaited(_import(food)),

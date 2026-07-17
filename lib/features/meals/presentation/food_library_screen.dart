@@ -73,7 +73,13 @@ class _FoodLibraryScreenState extends ConsumerState<FoodLibraryScreen> {
                         if (food.category != null) food.category!,
                         l10n.foodUsageCount(food.usageCount),
                         if (kcal != null)
-                          l10n.nutritionFoodKcalSubtitle(kcal.round()),
+                          kcal.per100
+                              ? l10n.nutritionFoodKcal100Subtitle(
+                                  kcal.kcal.round(),
+                                )
+                              : l10n.nutritionFoodKcalSubtitle(
+                                  kcal.kcal.round(),
+                                ),
                       ].join(' · '),
                     ),
                     leading: IconButton(

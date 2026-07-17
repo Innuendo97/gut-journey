@@ -4,10 +4,11 @@ import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/features/nutrition/data/nutrition_repository.dart';
 import 'package:gut_journey/features/stats/domain/daily_value.dart';
 
-/// foodItemId → kcal per serving for the whole library (library subtitles).
-final kcalByFoodProvider = StreamProvider.autoDispose<Map<String, double>>(
-  (ref) => ref.watch(nutritionRepositoryProvider).watchKcalByFood(),
-);
+/// foodItemId → displayable kcal estimate (library subtitles).
+final kcalByFoodProvider =
+    StreamProvider.autoDispose<Map<String, KcalEstimate>>(
+      (ref) => ref.watch(nutritionRepositoryProvider).watchKcalByFood(),
+    );
 
 /// Estimated kcal of one day, null when nothing kcal-bearing was logged.
 final dayKcalProvider = StreamProvider.autoDispose.family<double?, LocalDay>(

@@ -474,6 +474,12 @@
       "kcal": {"type": "int"}
     }
   },
+  "nutritionFoodKcal100Subtitle": "{kcal} kcal/100g",
+  "@nutritionFoodKcal100Subtitle": {
+    "placeholders": {
+      "kcal": {"type": "int"}
+    }
+  },
   "mealServingMultiplier": "×{count}",
   "@mealServingMultiplier": {
     "description": "Servings multiplier suffix on a picked food chip",

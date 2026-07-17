@@ -8,6 +8,9 @@ import 'package:gut_journey/features/meals/data/food_repository.dart';
 import 'package:gut_journey/features/nutrition/domain/nutrition_facts.dart';
 import 'package:gut_journey/features/stats/domain/daily_value.dart';
 
+/// A food's kcal figure for list subtitles, with the base it refers to.
+typedef KcalEstimate = ({double kcal, bool per100});
+
 final nutritionRepositoryProvider = Provider<NutritionRepository>(
   (ref) => NutritionRepository(
     ref.watch(databaseProvider),
@@ -57,20 +60,30 @@ class NutritionRepository {
     }
   }
 
-  /// foodItemId → kcal per serving for the whole library, live.
-  /// Unparseable stored values are dropped.
-  Stream<Map<String, double>> watchKcalByFood() => _foods
-      .watchAttributeValues(
-        source: nutritionAttributeSource,
-        key: nutritionKcalKey,
-      )
-      .map(
-        (values) => {
-          for (final entry in values.entries)
-            if (double.tryParse(entry.value) != null)
-              entry.key: double.parse(entry.value),
-        },
+  /// foodItemId → displayable kcal estimate for the whole library, live:
+  /// the per-100g base when present, the legacy per-serving value
+  /// otherwise. Unparseable stored values are dropped.
+  Stream<Map<String, KcalEstimate>> watchKcalByFood() {
+    final query = _db.select(_db.foodAttributes)
+      ..where(
+        (t) =>
+            t.source.equals(nutritionAttributeSource) &
+            t.key.isIn(const [nutritionKcal100Key, nutritionKcalKey]),
       );
+    return query.watch().map((rows) {
+      final result = <String, KcalEstimate>{};
+      for (final row in rows) {
+        final kcal = double.tryParse(row.value);
+        if (kcal == null) continue;
+        final per100 = row.key == nutritionKcal100Key;
+        final current = result[row.foodItemId];
+        if (current == null || (per100 && !current.per100)) {
+          result[row.foodItemId] = (kcal: kcal, per100: per100);
+        }
+      }
+      return result;
+    });
+  }
 
   /// Estimated kcal per day over [range], mirroring
   /// [NutritionFacts.nutrientsFor] in SQL: items with an explicit amount

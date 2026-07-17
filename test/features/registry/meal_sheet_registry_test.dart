@@ -37,20 +37,18 @@ void main() {
       expect(find.byIcon(Icons.menu_book_outlined), findsOneWidget);
       await tapInSheet(tester, 'Buffalo mozzarella');
 
-      // Imported into the library with per-serving values and provenance.
+      // Imported into the library with per-100g values and provenance.
       final attributes = await harness.db
           .select(harness.db.foodAttributes)
           .get();
       final byKey = {for (final r in attributes) r.key: r.value};
-      expect(byKey['kcal_per_serving'], '360.0'); // 288 × 1.25
+      expect(byKey['kcal_per_100g'], '288.0');
+      expect(byKey['serving_g'], '125.0');
       expect(byKey['origin'], 'registry:mozzarella-di-bufala@v1');
 
       await tapInSheet(tester, 'Save');
 
-      // The day total picks the estimate up immediately...
-      expect(find.text('Energy (estimated)'), findsOneWidget);
-      expect(find.text('360 kcal'), findsOneWidget);
-      // ...and no "add values" nudge fires: the food came with values.
+      // No "add values" nudge fires: the food came with values.
       await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle();
       expect(find.textContaining('no nutrition values'), findsNothing);

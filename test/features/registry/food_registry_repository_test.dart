@@ -75,7 +75,7 @@ void main() {
     expect(await broken.suggest('pasta'), isEmpty);
   });
 
-  test('import creates the food with per-serving values and origin', () async {
+  test('import creates the food with per-100g values and origin', () async {
     final pasta = (await repo.byId('pasta-semola-cruda'))!;
     final item = await repo.importIntoLibrary(pasta, languageCode: 'it');
 
@@ -84,10 +84,18 @@ void main() {
     expect(library.single.category, 'Cereali e pasta');
 
     final facts = await nutrition.getFacts(item.id);
-    // 353 kcal/100g × 80 g = 282.4 → whole kcal; macros to one decimal.
-    expect(facts.legacyPerServing?.kcal, 282);
-    expect(facts.legacyPerServing?.proteinG, 8.7);
-    expect(facts.legacyPerServing?.carbsG, 63.3);
+    expect(
+      facts.per100,
+      const Nutrients(
+        kcal: 353,
+        proteinG: 10.9,
+        carbsG: 79.1,
+        fatG: 1.4,
+        fiberG: 2.7,
+      ),
+    );
+    expect(facts.servingG, 80);
+    expect(facts.legacyPerServing, isNull);
     expect(facts.servingDescription, 'una porzione (80 g)');
 
     final attributes = await foods.getAttributes(
@@ -103,16 +111,35 @@ void main() {
     // Tamper with the stored value, then re-import.
     await nutrition.saveFacts(
       first.id,
-      const NutritionFacts(legacyPerServing: Nutrients(kcal: 1)),
+      const NutritionFacts(per100: Nutrients(kcal: 1)),
     );
     final second = await repo.importIntoLibrary(pasta, languageCode: 'it');
 
     expect(second.id, first.id); // same library row, no duplicate
-    expect(
-      (await nutrition.getFacts(first.id)).legacyPerServing?.kcal,
-      282,
-    );
+    expect((await nutrition.getFacts(first.id)).per100?.kcal, 353);
     expect(await foods.watchLibrary().first, hasLength(1));
+  });
+
+  test('re-importing keeps legacy per-serving values intact', () async {
+    final pasta = (await repo.byId('pasta-semola-cruda'))!;
+    final item = await repo.importIntoLibrary(pasta, languageCode: 'it');
+    // Historical rows compute from these — an import must never eat them.
+    await nutrition.saveFacts(
+      item.id,
+      const NutritionFacts(
+        per100: Nutrients(kcal: 1),
+        legacyPerServing: Nutrients(kcal: 282, proteinG: 8.7),
+      ),
+    );
+
+    await repo.importIntoLibrary(pasta, languageCode: 'it');
+
+    final facts = await nutrition.getFacts(item.id);
+    expect(facts.per100?.kcal, 353); // refreshed
+    expect(
+      facts.legacyPerServing,
+      const Nutrients(kcal: 282, proteinG: 8.7), // preserved
+    );
   });
 
   test('the English locale imports English names and descriptions', () async {
@@ -122,6 +149,65 @@ void main() {
     expect(item.name, 'Red wine (100 ml)');
     final facts = await nutrition.getFacts(item.id);
     expect(facts.servingDescription, 'one glass (125 ml)');
-    expect(facts.legacyPerServing?.kcal, 95); // 76 × 1.25
+    expect(facts.per100?.kcal, 76);
+    expect(facts.servingG, 125);
+  });
+
+  test('upgradeImportedFoods derives per-100g for pre-v0.5 imports', () async {
+    // A food imported before v0.5: legacy per-serving values + origin,
+    // no per-100g base.
+    final item = await foods.getOrCreateByName('Pasta di semola (cruda)');
+    await nutrition.saveFacts(
+      item.id,
+      const NutritionFacts(
+        legacyPerServing: Nutrients(kcal: 282, proteinG: 8.7),
+        servingDescription: 'una porzione (80 g)',
+      ),
+    );
+    await foods.setAttribute(
+      foodItemId: item.id,
+      source: nutritionAttributeSource,
+      key: nutritionOriginKey,
+      value: 'registry:pasta-semola-cruda@v1',
+    );
+    // A manual food must never be touched.
+    final manual = await foods.getOrCreateByName('Torta della nonna');
+    await nutrition.saveFacts(
+      manual.id,
+      const NutritionFacts(legacyPerServing: Nutrients(kcal: 400)),
+    );
+
+    expect(await repo.upgradeImportedFoods(), 1);
+
+    final facts = await nutrition.getFacts(item.id);
+    expect(facts.per100?.kcal, 353);
+    expect(facts.servingG, 80);
+    // Legacy values and the stored description survive for history.
+    expect(
+      facts.legacyPerServing,
+      const Nutrients(kcal: 282, proteinG: 8.7),
+    );
+    expect(facts.servingDescription, 'una porzione (80 g)');
+    expect(
+      await nutrition.getFacts(manual.id),
+      const NutritionFacts(legacyPerServing: Nutrients(kcal: 400)),
+    );
+
+    // Idempotent: a second pass rewrites the same values harmlessly.
+    expect(await repo.upgradeImportedFoods(), 1);
+    expect((await nutrition.getFacts(item.id)).per100?.kcal, 353);
+  });
+
+  test('upgradeImportedFoods skips origins missing from the asset', () async {
+    final item = await foods.getOrCreateByName('Cibo scomparso');
+    await foods.setAttribute(
+      foodItemId: item.id,
+      source: nutritionAttributeSource,
+      key: nutritionOriginKey,
+      value: 'registry:voce-rimossa@v1',
+    );
+
+    expect(await repo.upgradeImportedFoods(), 0);
+    expect((await nutrition.getFacts(item.id)).isEmpty, isTrue);
   });
 }

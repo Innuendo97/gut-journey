@@ -97,8 +97,10 @@ class FoodRegistryRepository {
   }
 
   /// Creates (or finds, case-insensitively) the library food for [food] in
-  /// the given language and stores its per-serving estimates plus category
+  /// the given language and stores its per-100g estimates plus category
   /// and provenance. Idempotent: importing again refreshes the values.
+  /// Legacy per-serving values are preserved — historical meal rows keep
+  /// computing from them.
   Future<FoodItem> importIntoLibrary(
     RegistryFood food, {
     required String languageCode,
@@ -107,7 +109,7 @@ class FoodRegistryRepository {
     await _foods.updateItem(
       item.copyWith(category: food.categoryLabel(languageCode)),
     );
-    await _nutrition.saveFacts(item.id, food.toFacts(languageCode));
+    await _saveRegistryFacts(item.id, food, languageCode: languageCode);
     await _foods.setAttribute(
       foodItemId: item.id,
       source: nutritionAttributeSource,
@@ -115,5 +117,51 @@ class FoodRegistryRepository {
       value: 'registry:${food.id}@v$version',
     );
     return item;
+  }
+
+  /// One-time data upgrade for the per-100g model: every library food
+  /// whose `origin` points at the registry gets its per-100g base and
+  /// serving weight re-derived from the asset. Returns how many foods
+  /// were upgraded; idempotent, and foods without provenance are never
+  /// touched.
+  Future<int> upgradeImportedFoods() async {
+    final origins = await _foods.getAttributeValues(
+      source: nutritionAttributeSource,
+      key: nutritionOriginKey,
+    );
+    var upgraded = 0;
+    for (final MapEntry(key: foodItemId, value: origin) in origins.entries) {
+      const prefix = 'registry:';
+      if (!origin.startsWith(prefix)) continue;
+      final registryId = origin.substring(prefix.length).split('@').first;
+      final food = await byId(registryId);
+      if (food == null) continue;
+      await _saveRegistryFacts(foodItemId, food);
+      upgraded++;
+    }
+    return upgraded;
+  }
+
+  /// Writes [food]'s per-100g base onto the library item, keeping the
+  /// stored legacy per-serving values (historical rows need them). The
+  /// serving description is refreshed only when a language is given —
+  /// the upgrade pass has no locale and keeps the stored one.
+  Future<void> _saveRegistryFacts(
+    String foodItemId,
+    RegistryFood food, {
+    String? languageCode,
+  }) async {
+    final existing = await _nutrition.getFacts(foodItemId);
+    await _nutrition.saveFacts(
+      foodItemId,
+      NutritionFacts(
+        per100: food.per100,
+        servingG: food.servingG,
+        legacyPerServing: existing.legacyPerServing,
+        servingDescription: languageCode == null
+            ? existing.servingDescription
+            : food.servingDescription(languageCode),
+      ),
+    );
   }
 }

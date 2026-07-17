@@ -189,6 +189,18 @@ class FoodRepository {
     );
   }
 
+  /// One-shot snapshot of [watchAttributeValues] — for maintenance passes
+  /// that must not hold a live query open.
+  Future<Map<String, String>> getAttributeValues({
+    required String source,
+    required String key,
+  }) async {
+    final rows = await (_db.select(
+      _db.foodAttributes,
+    )..where((t) => t.source.equals(source) & t.key.equals(key))).get();
+    return {for (final row in rows) row.foodItemId: row.value};
+  }
+
   Future<void> removeAttribute({
     required String foodItemId,
     required String source,

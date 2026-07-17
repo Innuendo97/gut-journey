@@ -293,6 +293,7 @@
   "nutritionFatLabel": "Grassi",
   "nutritionFiberLabel": "Fibre",
   "nutritionFoodKcalSubtitle": "{kcal} kcal/porzione",
+  "nutritionFoodKcal100Subtitle": "{kcal} kcal/100g",
   "mealServingMultiplier": "×{count}",
   "nutritionCardTitle": "Energia (stimata)",
   "nutritionKcalValue": "{kcal} kcal",

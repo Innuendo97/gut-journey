@@ -106,20 +106,20 @@ class RegistryFood {
   /// Estimated kcal for one typical serving.
   double get kcalPerServing => kcal100 * servingG / 100;
 
-  /// Per-serving facts in the app's model, rounded to sensible precision
-  /// (whole kcal, one decimal for macros).
-  NutritionFacts toFacts(String languageCode) {
-    double perServing(double per100) =>
-        ((per100 * servingG / 100) * 10).roundToDouble() / 10;
-    return NutritionFacts(
-      legacyPerServing: Nutrients(
-        kcal: kcalPerServing.roundToDouble(),
-        proteinG: perServing(protein100),
-        carbsG: perServing(carbs100),
-        fatG: perServing(fat100),
-        fiberG: perServing(fiber100),
-      ),
-      servingDescription: servingDescription(languageCode),
-    );
-  }
+  /// The per-100g base in the app's model.
+  Nutrients get per100 => Nutrients(
+    kcal: kcal100,
+    proteinG: protein100,
+    carbsG: carbs100,
+    fatG: fat100,
+    fiberG: fiber100,
+  );
+
+  /// Facts in the app's model: the per-100g base as-is plus the typical
+  /// serving weight and its localized description.
+  NutritionFacts toFacts(String languageCode) => NutritionFacts(
+    per100: per100,
+    servingG: servingG,
+    servingDescription: servingDescription(languageCode),
+  );
 }

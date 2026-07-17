@@ -45,7 +45,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Match with kcal + category subtitle.
-      expect(find.textContaining('282 kcal/serving'), findsOneWidget);
+      expect(find.textContaining('353 kcal/100g'), findsOneWidget);
       await tester.tap(find.text('Durum wheat pasta (dry)'));
       await tester.pumpAndSettle();
 
@@ -59,7 +59,8 @@ void main() {
           .select(harness.db.foodAttributes)
           .get();
       final byKey = {for (final r in attributes) r.key: r.value};
-      expect(byKey['kcal_per_serving'], '282.0');
+      expect(byKey['kcal_per_100g'], '353.0');
+      expect(byKey['serving_g'], '80.0');
     },
   );
 
