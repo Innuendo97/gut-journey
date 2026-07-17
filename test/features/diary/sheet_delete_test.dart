@@ -37,6 +37,8 @@ void main() {
 
     await tester.drag(find.text('Yoga'), const Offset(-600, 0));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete')); // confirm the swipe
+    await tester.pumpAndSettle();
 
     expect(find.text('Yoga'), findsNothing);
     expect(find.text('Entry deleted'), findsOneWidget);

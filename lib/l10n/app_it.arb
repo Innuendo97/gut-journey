@@ -303,5 +303,7 @@
   "nutritionGoalSetting": "Obiettivo energetico giornaliero",
   "nutritionGoalOff": "Disattivato — le stime compaiono senza obiettivo",
   "nutritionGoalValue": "{kcal} kcal al giorno",
-  "nutritionGoalDialogLabel": "Obiettivo giornaliero (0 = disattivato)"
+  "nutritionGoalDialogLabel": "Obiettivo giornaliero (0 = disattivato)",
+  "deleteConfirmTitle": "Eliminare questa voce?",
+  "deleteConfirmBody": "La voce sarà rimossa dal diario. Potrai comunque annullare subito dopo."
 }

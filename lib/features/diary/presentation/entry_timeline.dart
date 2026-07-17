@@ -54,11 +54,39 @@ class _TimelineItem {
 }
 
 /// Chronological list of everything logged on [diaryDay]: tap to edit,
-/// swipe to delete with undo.
+/// swipe to delete — confirmed first, then still undoable.
 class EntryTimeline extends ConsumerWidget {
   const EntryTimeline({required this.diaryDay, super.key});
 
   final DiaryDay diaryDay;
+
+  /// A swipe is easy to trigger by accident while scrolling, so unlike the
+  /// deliberate Delete buttons in the edit sheets it asks first. The undo
+  /// snackbar stays as the second net.
+  static Future<bool?> _confirmDelete(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteConfirmTitle),
+        content: Text(l10n.deleteConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -84,6 +112,7 @@ class EntryTimeline extends ConsumerWidget {
                 ),
               ),
             ),
+            confirmDismiss: (_) async => await _confirmDelete(context) ?? false,
             onDismissed: (_) => deleteEntryWithUndo(
               context,
               delete: item.delete,

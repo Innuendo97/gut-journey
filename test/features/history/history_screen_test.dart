@@ -47,6 +47,8 @@ void main() {
     // Swipe-delete from History's own day view: the dot row reacts too.
     await tester.drag(find.text('250 ml'), const Offset(-600, 0));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete')); // confirm the swipe
+    await tester.pumpAndSettle();
     expect(find.byKey(markerKey), findsNothing);
   });
 

@@ -506,5 +506,7 @@
       "kcal": {"type": "int"}
     }
   },
-  "nutritionGoalDialogLabel": "Daily goal (0 = off)"
+  "nutritionGoalDialogLabel": "Daily goal (0 = off)",
+  "deleteConfirmTitle": "Delete this entry?",
+  "deleteConfirmBody": "The entry will be removed from your diary. You can still undo right after."
 }

@@ -73,14 +73,26 @@ void main() {
     expect(find.text('70.5 kg'), findsOneWidget);
   });
 
-  testApp('swiping a timeline entry deletes it and undo restores it', (
+  testApp('swiping a timeline entry asks first, then deletes with undo', (
     tester,
     harness,
   ) async {
     await tapQuickAdd(tester, 'Water');
     expect(find.text('250 / 2000 ml'), findsOneWidget);
 
+    // Cancelling the confirmation keeps the entry.
     await tester.drag(find.text('250 ml'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete this entry?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('250 / 2000 ml'), findsOneWidget);
+    expect(find.text('Entry deleted'), findsNothing);
+
+    // Confirming deletes; undo still works as the second net.
+    await tester.drag(find.text('250 ml'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
 
     expect(find.text('0 / 2000 ml'), findsOneWidget);
