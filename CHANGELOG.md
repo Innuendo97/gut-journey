@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Observed patterns**: the Statistics tab now surfaces meal ↔ symptom
+  associations observed in the diary. For each food, the app compares how
+  often a symptom followed meals with it (within a selectable 4/8/24h
+  window) against meals without it, always showing the raw counts. Patterns
+  are observations to discuss with your doctor — never causes or advice.
+
 ## [0.1.2] - 2026-07-17
 
 ### Added

@@ -110,6 +110,10 @@ void main() {
     await tester.pumpAndSettle();
     await capture('stats');
 
+    await tester.tap(find.byTooltip('Observed patterns'));
+    await tester.pumpAndSettle();
+    await capture('correlations');
+
     // Unmount and deliberately LEAK the database: after runAsync drift's
     // teardown timers straddle the fake and real event loops and close()
     // deadlocks. This is a one-shot tool process — the OS reclaims it.

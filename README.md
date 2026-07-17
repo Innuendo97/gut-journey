@@ -25,9 +25,9 @@ Gut Journey keeps everything in one place, fully on your device.
 
 ## Screenshots
 
-| Today | History | Stats |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/today.png" alt="Today screen with the day timeline" width="260"> | <img src="docs/screenshots/history.png" alt="History calendar with per-category markers" width="260"> | <img src="docs/screenshots/stats.png" alt="Statistics dashboard" width="260"> |
+| Today | History | Stats | Patterns |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/screenshots/today.png" alt="Today screen with the day timeline" width="200"> | <img src="docs/screenshots/history.png" alt="History calendar with per-category markers" width="200"> | <img src="docs/screenshots/stats.png" alt="Statistics dashboard" width="200"> | <img src="docs/screenshots/correlations.png" alt="Observed meal-symptom patterns" width="200"> |
 
 ## Features
 
@@ -41,8 +41,8 @@ Gut Journey keeps everything in one place, fully on your device.
 | Statistics: trends, distributions, summaries | ✅ |
 | Italian + English | ✅ |
 | Backup & restore (database file + JSON export) | ✅ |
-| PDF export for your doctor | 🔮 Planned |
-| Food ↔ symptom correlation insights | 🔮 Planned |
+| PDF export for your doctor | ✅ |
+| Observed meal ↔ symptom patterns (time-window comparison) | ✅ |
 | Low FODMAP reintroduction-phase module | 🔮 Planned |
 | Multi-device sync | 🔮 Planned |
 
