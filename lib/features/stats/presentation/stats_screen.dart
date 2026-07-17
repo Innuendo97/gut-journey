@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:gut_journey/app/router.dart';
 import 'package:gut_journey/core/l10n/labels.dart';
+import 'package:gut_journey/features/correlations/presentation/widgets/observed_patterns_card.dart';
 import 'package:gut_journey/features/diary/presentation/diary_providers.dart';
 import 'package:gut_journey/features/medications/domain/adherence.dart';
 import 'package:gut_journey/features/medications/domain/medication.dart';
@@ -57,6 +60,11 @@ class StatsScreen extends ConsumerWidget {
         title: Text(l10n.tabStats),
         actions: [
           IconButton(
+            icon: const Icon(Icons.hub_outlined),
+            tooltip: l10n.correlationsTitle,
+            onPressed: () => context.go(AppRoutes.statsCorrelations),
+          ),
+          IconButton(
             icon: const Icon(Icons.picture_as_pdf_outlined),
             tooltip: l10n.reportExportAction,
             onPressed: () => unawaited(
@@ -85,6 +93,7 @@ class StatsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 8),
+          const ObservedPatternsCard(),
           ChartSection(
             title: l10n.sectionSymptomIntensity,
             annotation: l10n.sectionSymptomIntensitySubtitle,

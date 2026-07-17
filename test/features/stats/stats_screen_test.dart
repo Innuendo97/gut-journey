@@ -28,6 +28,12 @@ void main() {
     await tester.tap(find.text('Stats'));
     await tester.pumpAndSettle();
 
+    // The observed-patterns card sits on top; the sections scroll below it.
+    await tester.scrollUntilVisible(
+      find.text('Symptom frequency'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Symptom frequency'), findsOneWidget);
     // The frequency row lists the logged symptom with its count.
     expect(find.text('Bloating'), findsWidgets);

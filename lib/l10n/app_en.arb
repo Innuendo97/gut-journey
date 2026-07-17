@@ -339,6 +339,67 @@
     }
   },
 
+  "correlationsTitle": "Observed patterns",
+  "correlationsCardEmpty": "Log meals and symptoms for a couple of weeks to see observed patterns here.",
+  "correlationsCardSeeAll": "See all",
+  "correlationsWindowLabel": "Symptoms within",
+  "correlationsWindowHours": "{hours} h",
+  "@correlationsWindowHours": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "correlationsPair": "{symptom} after {food}",
+  "@correlationsPair": {
+    "placeholders": {
+      "symptom": {"type": "String"},
+      "food": {"type": "String"}
+    }
+  },
+  "correlationsExposedCounts": "After meals with {food}: {withSymptom} of {meals}",
+  "@correlationsExposedCounts": {
+    "placeholders": {
+      "food": {"type": "String"},
+      "withSymptom": {"type": "int"},
+      "meals": {"type": "int"}
+    }
+  },
+  "correlationsBaselineCounts": "After meals without it: {withSymptom} of {meals}",
+  "@correlationsBaselineCounts": {
+    "placeholders": {
+      "withSymptom": {"type": "int"},
+      "meals": {"type": "int"}
+    }
+  },
+  "correlationsLift": "about {lift}× more often than after meals without it",
+  "@correlationsLift": {
+    "placeholders": {
+      "lift": {"type": "String"}
+    }
+  },
+  "correlationsNoBaseline": "Never observed after meals without it in this period",
+  "correlationsStrengthWeak": "Weak signal",
+  "correlationsStrengthModerate": "Moderate signal",
+  "correlationsStrengthStrong": "Strong signal",
+  "correlationsAnalyzed": "{meals} meals and {events} symptom entries analyzed",
+  "@correlationsAnalyzed": {
+    "placeholders": {
+      "meals": {"type": "int"},
+      "events": {"type": "int"}
+    }
+  },
+  "correlationsMethodTitle": "How this works",
+  "correlationsMethodBody": "For each food, Gut Journey compares how often a symptom was logged within {hours} hours after meals containing it, against meals without it. Only pairs with at least 3 meals on each side and repeated co-occurrences are shown. The signal strength accounts for small numbers, and meals close together can share the same symptom entry. Patterns depend on what you log — they can reflect habits, portions or chance.",
+  "@correlationsMethodBody": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "correlationsDisclaimer": "These are observed patterns in your diary, not causes. Discuss them with your doctor.",
+  "correlationsNoPatterns": "No clear patterns in this period — that is useful information too.",
+  "correlationsEmptyTitle": "No patterns to show yet",
+  "correlationsEmptySubtitle": "Log meals and symptoms for a couple of weeks, then check back.",
+
   "aboutSection": "About",
   "disclaimerSetting": "Medical disclaimer",
   "licensesSetting": "Open source licenses",

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gut_journey/app/app_shell.dart';
+import 'package:gut_journey/features/correlations/presentation/correlations_screen.dart';
 import 'package:gut_journey/features/diary/presentation/today_screen.dart';
 import 'package:gut_journey/features/history/presentation/history_screen.dart';
 import 'package:gut_journey/features/meals/presentation/food_library_screen.dart';
@@ -19,6 +20,7 @@ abstract final class AppRoutes {
   static const today = '/today';
   static const history = '/history';
   static const stats = '/stats';
+  static const statsCorrelations = '/stats/correlations';
   static const more = '/more';
   static const moreFoods = '/more/foods';
   static const moreMedications = '/more/medications';
@@ -70,6 +72,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.stats,
                 builder: (context, state) => const StatsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'correlations',
+                    builder: (context, state) => const CorrelationsScreen(),
+                  ),
+                ],
               ),
             ],
           ),

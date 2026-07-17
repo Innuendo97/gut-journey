@@ -1,4 +1,5 @@
 import 'package:gut_journey/features/activity/domain/effort.dart';
+import 'package:gut_journey/features/correlations/domain/correlation_models.dart';
 import 'package:gut_journey/features/meals/domain/meal_type.dart';
 import 'package:gut_journey/features/symptoms/domain/symptom_type.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
@@ -31,6 +32,13 @@ extension DomainLabels on AppLocalizations {
     7 => bristol7,
     _ => '',
   };
+
+  String correlationStrengthLabel(CorrelationStrength strength) =>
+      switch (strength) {
+        CorrelationStrength.weak => correlationsStrengthWeak,
+        CorrelationStrength.moderate => correlationsStrengthModerate,
+        CorrelationStrength.strong => correlationsStrengthStrong,
+      };
 
   /// Presets resolve through their language-independent key; custom types
   /// use the user's own name.
