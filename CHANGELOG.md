@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Nutrition estimates** (diet as part of the therapy conversation): give
+  any food in your library an estimated kcal-per-serving value (plus
+  optional protein/carbs/fat/fibre and a typical-serving note). The Today
+  screen shows the day's estimated energy, Statistics gains a kcal-per-day
+  chart, and an optional daily goal (off by default) can be set in
+  Settings. No bundled nutrition database: the values are yours, the
+  totals are estimates — targets belong to your doctor or dietitian.
+- Serving multiplier in the meal sheet: tap a picked food chip to cycle
+  one serving into ×2, ×½ and back. One tap per food stays the fast path.
+- Schema migration v2 → v3 (serving quantity on meal items); existing
+  diaries and backups upgrade in place.
+
+### Fixed
+
+- Editing a meal from the sheet no longer silently drops the portion
+  descriptions stored on its items.
+
 ## [0.2.0] - 2026-07-17
 
 ### Added

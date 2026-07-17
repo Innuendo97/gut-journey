@@ -44,6 +44,7 @@ Gut Journey keeps everything in one place, fully on your device.
 | PDF export for your doctor | ✅ |
 | Observed meal ↔ symptom patterns (time-window comparison) | ✅ |
 | Low FODMAP reintroduction-phase module | ✅ |
+| Estimated calories per day (your own per-serving values, optional goal) | ✅ |
 | Multi-device sync | 🔮 Planned |
 
 ## Design principles
