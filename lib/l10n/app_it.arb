@@ -308,5 +308,9 @@
   "deleteConfirmBody": "La voce sarà rimossa dal diario. Potrai comunque annullare subito dopo.",
   "nutritionNewFoodPrompt": "\"{name}\" non ha ancora valori nutrizionali",
   "nutritionNewFoodsPrompt": "Alcuni nuovi alimenti non hanno ancora valori nutrizionali",
-  "nutritionAddValuesAction": "Aggiungi valori"
+  "nutritionAddValuesAction": "Aggiungi valori",
+  "foodAddAction": "Aggiungi alimento",
+  "foodRegistrySearchHint": "Cerca nel registro alimenti",
+  "foodCreateCustom": "Crea \"{name}\"",
+  "foodImportedSnack": "\"{name}\" aggiunto alla libreria con i valori stimati"
 }

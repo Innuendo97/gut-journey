@@ -516,5 +516,19 @@
     }
   },
   "nutritionNewFoodsPrompt": "Some new foods have no nutrition values yet",
-  "nutritionAddValuesAction": "Add values"
+  "nutritionAddValuesAction": "Add values",
+  "foodAddAction": "Add food",
+  "foodRegistrySearchHint": "Search the food registry",
+  "foodCreateCustom": "Create \"{name}\"",
+  "@foodCreateCustom": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "foodImportedSnack": "\"{name}\" added to your library with its estimated values",
+  "@foodImportedSnack": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  }
 }

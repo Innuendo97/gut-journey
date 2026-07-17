@@ -8,6 +8,7 @@ import 'package:gut_journey/features/meals/data/food_repository.dart';
 import 'package:gut_journey/features/meals/domain/food_item.dart';
 import 'package:gut_journey/features/nutrition/presentation/food_nutrition_sheet.dart';
 import 'package:gut_journey/features/nutrition/presentation/nutrition_providers.dart';
+import 'package:gut_journey/features/registry/presentation/add_food_sheet.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
 
 final foodLibraryProvider = StreamProvider.autoDispose
@@ -37,6 +38,11 @@ class _FoodLibraryScreenState extends ConsumerState<FoodLibraryScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.foodLibraryTitle)),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => unawaited(AddFoodSheet.show(context)),
+        icon: const Icon(Icons.add),
+        label: Text(l10n.foodAddAction),
+      ),
       body: Column(
         children: [
           Padding(
