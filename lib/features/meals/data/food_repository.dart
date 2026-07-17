@@ -176,6 +176,33 @@ class FoodRepository {
     return {for (final row in rows) row.key: row.value};
   }
 
+  /// One attribute across the whole library, live: foodItemId → value for
+  /// every food carrying ([source], [key]) — e.g. each food's FODMAP group.
+  Stream<Map<String, String>> watchAttributeValues({
+    required String source,
+    required String key,
+  }) {
+    final query = _db.select(_db.foodAttributes)
+      ..where((t) => t.source.equals(source) & t.key.equals(key));
+    return query.watch().map(
+      (rows) => {for (final row in rows) row.foodItemId: row.value},
+    );
+  }
+
+  Future<void> removeAttribute({
+    required String foodItemId,
+    required String source,
+    required String key,
+  }) async {
+    await (_db.delete(_db.foodAttributes)..where(
+          (t) =>
+              t.foodItemId.equals(foodItemId) &
+              t.source.equals(source) &
+              t.key.equals(key),
+        ))
+        .go();
+  }
+
   List<FoodItem> _toDomainList(List<FoodItemRow> rows) => [
     for (final row in rows) row.toDomain(),
   ];

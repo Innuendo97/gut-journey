@@ -110,4 +110,56 @@ void main() {
     expect(attributes, {'overall': 'high', 'fructan': 'low'});
     expect(await repo.getAttributes(rice.id, source: 'other'), isEmpty);
   });
+
+  test(
+    'watchAttributeValues maps the library live and removal clears',
+    () async {
+      final rice = await repo.create('Rice');
+      final milk = await repo.create('Milk');
+      await repo.setAttribute(
+        foodItemId: milk.id,
+        source: 'fodmap',
+        key: 'group',
+        value: 'lactose',
+      );
+      // A different key must not leak into the map.
+      await repo.setAttribute(
+        foodItemId: rice.id,
+        source: 'fodmap',
+        key: 'overall',
+        value: 'low',
+      );
+
+      final byFood = await repo
+          .watchAttributeValues(source: 'fodmap', key: 'group')
+          .first;
+      expect(byFood, {milk.id: 'lactose'});
+
+      await repo.setAttribute(
+        foodItemId: rice.id,
+        source: 'fodmap',
+        key: 'group',
+        value: 'fructans',
+      );
+      expect(
+        await repo.watchAttributeValues(source: 'fodmap', key: 'group').first,
+        {milk.id: 'lactose', rice.id: 'fructans'},
+      );
+
+      await repo.removeAttribute(
+        foodItemId: milk.id,
+        source: 'fodmap',
+        key: 'group',
+      );
+      expect(
+        await repo.watchAttributeValues(source: 'fodmap', key: 'group').first,
+        {rice.id: 'fructans'},
+      );
+      // Other keys survive the targeted removal.
+      expect(await repo.getAttributes(rice.id, source: 'fodmap'), {
+        'overall': 'low',
+        'group': 'fructans',
+      });
+    },
+  );
 }
