@@ -12,21 +12,33 @@ final sharedPreferencesProvider = Provider<SharedPreferences>(
 /// App preferences. Diary data lives in the database; this is only
 /// device-local configuration.
 class AppSettings {
-  const AppSettings({required this.waterGoalMl, this.localeTag});
+  const AppSettings({
+    required this.waterGoalMl,
+    this.kcalGoal = defaultKcalGoal,
+    this.localeTag,
+  });
 
   final int waterGoalMl;
+
+  /// Optional daily energy goal in kcal; 0 means off. Off by default so the
+  /// app never volunteers a target — estimates only, discussed with the
+  /// user's clinician.
+  final int kcalGoal;
 
   /// BCP-47 tag ('en', 'it') of the forced app language, or null to follow
   /// the system locale.
   final String? localeTag;
 
   static const defaultWaterGoalMl = 2000;
+  static const defaultKcalGoal = 0;
 
   AppSettings copyWith({
     int? waterGoalMl,
+    int? kcalGoal,
     String? Function()? localeTag,
   }) => AppSettings(
     waterGoalMl: waterGoalMl ?? this.waterGoalMl,
+    kcalGoal: kcalGoal ?? this.kcalGoal,
     localeTag: localeTag != null ? localeTag() : this.localeTag,
   );
 }
@@ -37,6 +49,7 @@ final settingsProvider = NotifierProvider<SettingsNotifier, AppSettings>(
 
 class SettingsNotifier extends Notifier<AppSettings> {
   static const _waterGoalKey = 'water_goal_ml';
+  static const _kcalGoalKey = 'kcal_goal';
   static const _localeKey = 'locale_tag';
 
   @override
@@ -45,6 +58,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
     return AppSettings(
       waterGoalMl:
           prefs.getInt(_waterGoalKey) ?? AppSettings.defaultWaterGoalMl,
+      kcalGoal: prefs.getInt(_kcalGoalKey) ?? AppSettings.defaultKcalGoal,
       localeTag: prefs.getString(_localeKey),
     );
   }
@@ -52,6 +66,12 @@ class SettingsNotifier extends Notifier<AppSettings> {
   Future<void> setWaterGoalMl(int goal) async {
     state = state.copyWith(waterGoalMl: goal);
     await ref.read(sharedPreferencesProvider).setInt(_waterGoalKey, goal);
+  }
+
+  /// 0 turns the goal off.
+  Future<void> setKcalGoal(int goal) async {
+    state = state.copyWith(kcalGoal: goal);
+    await ref.read(sharedPreferencesProvider).setInt(_kcalGoalKey, goal);
   }
 
   /// Pass null to follow the system locale.

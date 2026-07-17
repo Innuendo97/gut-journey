@@ -9,6 +9,7 @@ import 'package:gut_journey/features/correlations/presentation/widgets/observed_
 import 'package:gut_journey/features/diary/presentation/diary_providers.dart';
 import 'package:gut_journey/features/medications/domain/adherence.dart';
 import 'package:gut_journey/features/medications/domain/medication.dart';
+import 'package:gut_journey/features/nutrition/presentation/nutrition_providers.dart';
 import 'package:gut_journey/features/report/presentation/report_export_sheet.dart';
 import 'package:gut_journey/features/settings/data/settings_repository.dart';
 import 'package:gut_journey/features/stats/domain/daily_value.dart';
@@ -48,6 +49,8 @@ class StatsScreen extends ConsumerWidget {
     final adherence =
         ref.watch(adherenceStatsProvider(range)).value ?? const [];
     final waterGoal = ref.watch(settingsProvider).waterGoalMl;
+    final kcal = ref.watch(kcalStatsProvider(range)).value ?? const [];
+    final kcalGoal = ref.watch(settingsProvider).kcalGoal;
 
     // Order intensity series by how often each symptom was logged, so the
     // chart's top-N cut keeps the most relevant ones.
@@ -135,6 +138,21 @@ class StatsScreen extends ConsumerWidget {
               range: range,
               values: water,
               goal: waterGoal.toDouble(),
+            ),
+          ),
+          ChartSection(
+            title: l10n.nutritionSectionKcal,
+            // The goal line only appears once the user set a goal; without
+            // one the annotation restates that these are estimates.
+            annotation: kcalGoal > 0
+                ? '${l10n.nutritionGoalLegend}: $kcalGoal kcal'
+                : l10n.nutritionEstimatesNote,
+            isEmpty: kcal.isEmpty,
+            height: 180,
+            child: DailyBarsChart(
+              range: range,
+              values: kcal,
+              goal: kcalGoal > 0 ? kcalGoal.toDouble() : null,
             ),
           ),
           ChartSection(

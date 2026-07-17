@@ -55,6 +55,16 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => unawaited(_editWaterGoal(context, ref, settings)),
           ),
           ListTile(
+            leading: const Icon(Icons.local_fire_department_outlined),
+            title: Text(l10n.nutritionGoalSetting),
+            subtitle: Text(
+              settings.kcalGoal > 0
+                  ? l10n.nutritionGoalValue(settings.kcalGoal)
+                  : l10n.nutritionGoalOff,
+            ),
+            onTap: () => unawaited(_editKcalGoal(context, ref, settings)),
+          ),
+          ListTile(
             leading: const Icon(Icons.healing_outlined),
             title: Text(l10n.manageSymptomTypes),
             trailing: const Icon(Icons.chevron_right),
@@ -210,6 +220,35 @@ class SettingsScreen extends ConsumerWidget {
     final goal = int.tryParse(values?.first.trim() ?? '');
     if (goal != null && goal > 0) {
       await ref.read(settingsProvider.notifier).setWaterGoalMl(goal);
+    }
+  }
+
+  Future<void> _editKcalGoal(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final values = await TextInputDialog.show(
+      context,
+      title: l10n.nutritionGoalSetting,
+      fields: [
+        TextInputField(
+          label: l10n.nutritionGoalDialogLabel,
+          initialValue: settings.kcalGoal > 0 ? '${settings.kcalGoal}' : '',
+          keyboardType: TextInputType.number,
+          suffixText: 'kcal',
+        ),
+      ],
+    );
+    if (values == null) return;
+    // Unlike the water goal, 0 (or an emptied field) is a valid answer:
+    // it turns the goal off.
+    final goal = int.tryParse(values.first.trim());
+    if (goal != null && goal >= 0) {
+      await ref.read(settingsProvider.notifier).setKcalGoal(goal);
+    } else if (values.first.trim().isEmpty) {
+      await ref.read(settingsProvider.notifier).setKcalGoal(0);
     }
   }
 }

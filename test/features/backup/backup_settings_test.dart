@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gut_journey/core/providers/clock_provider.dart';
 import 'package:gut_journey/core/providers/database_provider.dart';
@@ -124,6 +125,13 @@ void main() {
     'restoring asks for confirmation before touching the database',
     pickResult: '/backups/my-backup.db',
     body: (tester, files, restored) async {
+      // The tile sits below the fold now that Settings also hosts the
+      // kcal goal — bring it on screen before tapping.
+      await tester.scrollUntilVisible(
+        find.text('Restore from backup'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tapInSheet(tester, 'Restore from backup');
 
       expect(find.text('Restore backup?'), findsOneWidget);
@@ -144,6 +152,11 @@ void main() {
     pickResult: '/backups/random-file.txt',
     restoreError: const BackupException(BackupError.notABackup),
     body: (tester, files, restored) async {
+      await tester.scrollUntilVisible(
+        find.text('Restore from backup'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tapInSheet(tester, 'Restore from backup');
       await tester.tap(find.text('Restore'));
       await tester.pumpAndSettle();

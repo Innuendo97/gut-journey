@@ -480,5 +480,31 @@
     "placeholders": {
       "count": {"type": "String"}
     }
-  }
+  },
+  "nutritionCardTitle": "Energy (estimated)",
+  "nutritionKcalValue": "{kcal} kcal",
+  "@nutritionKcalValue": {
+    "placeholders": {
+      "kcal": {"type": "int"}
+    }
+  },
+  "nutritionKcalProgress": "{kcal} / {goal} kcal",
+  "@nutritionKcalProgress": {
+    "placeholders": {
+      "kcal": {"type": "int"},
+      "goal": {"type": "int"}
+    }
+  },
+  "nutritionSectionKcal": "Energy (kcal, estimated)",
+  "nutritionEstimatesNote": "Estimates from your own per-serving entries — discuss targets with your doctor or dietitian",
+  "nutritionGoalLegend": "Goal",
+  "nutritionGoalSetting": "Daily energy goal",
+  "nutritionGoalOff": "Off — estimates are shown without a target",
+  "nutritionGoalValue": "{kcal} kcal per day",
+  "@nutritionGoalValue": {
+    "placeholders": {
+      "kcal": {"type": "int"}
+    }
+  },
+  "nutritionGoalDialogLabel": "Daily goal (0 = off)"
 }

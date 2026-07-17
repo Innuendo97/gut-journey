@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
+import 'package:gut_journey/features/meals/data/food_repository.dart';
+import 'package:gut_journey/features/meals/data/meal_repository.dart';
+import 'package:gut_journey/features/meals/domain/meal_entry.dart';
 import 'package:gut_journey/features/meals/domain/meal_type.dart';
+import 'package:gut_journey/features/nutrition/domain/nutrition_facts.dart';
 
 import '../../helpers/pump_app.dart';
 
@@ -110,5 +114,70 @@ void main() {
     );
     expect(forward.onPressed, isNull);
     expect(today, LocalDay('2026-07-14'));
+  });
+
+  testApp('the estimated-kcal card appears once foods have estimates', (
+    tester,
+    harness,
+  ) async {
+    // No estimates and no goal → the card stays out of the way entirely.
+    expect(find.text('Energy (estimated)'), findsNothing);
+
+    final foods = FoodRepository(harness.db, harness.clock.call);
+    final meals = MealRepository(harness.db, foods, harness.clock.call);
+    final rice = await foods.create('Rice');
+    await foods.setAttribute(
+      foodItemId: rice.id,
+      source: nutritionAttributeSource,
+      key: nutritionKcalKey,
+      value: '200',
+    );
+    await meals.createMeal(
+      type: MealType.lunch,
+      occurredAt: DateTime(2026, 7, 14, 13),
+      items: [MealItemInput.existing(foodItemId: rice.id, quantity: 2)],
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Energy (estimated)'), findsOneWidget);
+    expect(find.text('400 kcal'), findsOneWidget);
+    // Goal off → plain total; the only progress bar is the water one.
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+  });
+
+  testApp('a kcal goal turns the Today card into progress', (
+    tester,
+    harness,
+  ) async {
+    final foods = FoodRepository(harness.db, harness.clock.call);
+    final meals = MealRepository(harness.db, foods, harness.clock.call);
+    final rice = await foods.create('Rice');
+    await foods.setAttribute(
+      foodItemId: rice.id,
+      source: nutritionAttributeSource,
+      key: nutritionKcalKey,
+      value: '200',
+    );
+    await meals.createMeal(
+      type: MealType.lunch,
+      occurredAt: DateTime(2026, 7, 14, 13),
+      items: [MealItemInput.existing(foodItemId: rice.id, quantity: 2)],
+    );
+
+    await tester.tap(find.text('More'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Daily energy goal'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '2000');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Today'));
+    await tester.pumpAndSettle();
+    expect(find.text('400 / 2000 kcal'), findsOneWidget);
+    // Water bar + kcal bar.
+    expect(find.byType(LinearProgressIndicator), findsNWidgets(2));
   });
 }

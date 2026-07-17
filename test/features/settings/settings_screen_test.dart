@@ -44,6 +44,39 @@ void main() {
     expect(find.text('0 / 1500 ml'), findsOneWidget);
   });
 
+  testApp('the kcal goal defaults to off and can be set and cleared', (
+    tester,
+    harness,
+  ) async {
+    await tester.tap(find.text('More'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Off — estimates are shown without a target'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Daily energy goal'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '2200');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('2200 kcal per day'), findsOneWidget);
+
+    // 0 is a valid answer here: it turns the goal back off.
+    await tester.tap(find.text('Daily energy goal'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '0');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Off — estimates are shown without a target'),
+      findsOneWidget,
+    );
+  });
+
   testApp('custom symptom types appear in the symptom sheet', (
     tester,
     harness,
