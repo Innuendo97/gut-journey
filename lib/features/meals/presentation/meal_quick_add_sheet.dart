@@ -216,7 +216,7 @@ class _MealQuickAddSheetState extends ConsumerState<MealQuickAddSheet> {
       // Idempotent: resolves the row the save just created.
       final item = await foodsRepo.getOrCreateByName(name);
       final facts = await nutrition.getFacts(item.id);
-      if (facts.kcalPerServing == null) withoutValues.add(item);
+      if (!facts.hasKcalBasis) withoutValues.add(item);
     }
     if (withoutValues.isEmpty) return;
     messenger.showSnackBar(

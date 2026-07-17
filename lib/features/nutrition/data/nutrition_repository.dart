@@ -72,21 +72,33 @@ class NutritionRepository {
         },
       );
 
-  /// Estimated kcal per day over [range]: sum of kcal-per-serving ×
-  /// servings for every logged meal item whose food has a kcal estimate.
-  /// Foods without one are excluded by the join; days without any
-  /// kcal-bearing item emit no value at all (no data ≠ zero). The watch
-  /// spans meals, items and attributes, so editing an estimate live-updates
-  /// every total retroactively.
+  /// Estimated kcal per day over [range], mirroring
+  /// [NutritionFacts.nutrientsFor] in SQL: items with an explicit amount
+  /// scale the food's per-100g base, historical items (null amount) keep
+  /// the legacy per-serving × servings formula. Items whose food lacks the
+  /// base their formula needs are excluded; days without any kcal-bearing
+  /// item emit no value at all (no data ≠ zero). The watch spans meals,
+  /// items and attributes, so editing an estimate live-updates every total
+  /// retroactively.
   Stream<List<DailyValue>> watchKcalDaily(DateRange range) {
     final items = _db.mealEntryItems;
     final meals = _db.mealEntries;
-    final attrs = _db.foodAttributes;
+    final a100 = _db.alias(_db.foodAttributes, 'a100');
+    final aServ = _db.alias(_db.foodAttributes, 'a_serv');
     // CAST(value AS REAL): unparseable text becomes 0, contributing
     // nothing instead of crashing the query.
-    final kcalPerServing = attrs.value.cast<double>();
+    final kcal100 = a100.value.cast<double>();
+    final kcalPerServing = aServ.value.cast<double>();
     final servings = coalesce<double>([items.quantity, const Constant(1)]);
-    final total = (kcalPerServing * servings).sum();
+    // The grams product is NULL whenever amountG or the per-100g base is
+    // missing, so COALESCE falls through to the legacy formula exactly for
+    // historical rows — the WHERE below drops the rows neither covers.
+    final gramsKcal = (kcal100 * items.amountG) / const Constant(100);
+    final itemKcal = coalesce<double>([
+      gramsKcal,
+      kcalPerServing * servings,
+    ]);
+    final total = itemKcal.sum();
     final query =
         _db.selectOnly(items).join([
             innerJoin(
@@ -94,17 +106,29 @@ class NutritionRepository {
               meals.id.equalsExp(items.mealEntryId),
               useColumns: false,
             ),
-            innerJoin(
-              attrs,
-              attrs.foodItemId.equalsExp(items.foodItemId) &
-                  attrs.source.equals(nutritionAttributeSource) &
-                  attrs.key.equals(nutritionKcalKey),
+            leftOuterJoin(
+              a100,
+              a100.foodItemId.equalsExp(items.foodItemId) &
+                  a100.source.equals(nutritionAttributeSource) &
+                  a100.key.equals(nutritionKcal100Key),
+              useColumns: false,
+            ),
+            leftOuterJoin(
+              aServ,
+              aServ.foodItemId.equalsExp(items.foodItemId) &
+                  aServ.source.equals(nutritionAttributeSource) &
+                  aServ.key.equals(nutritionKcalKey),
               useColumns: false,
             ),
           ])
           ..addColumns([meals.localDay, total])
           ..where(
-            meals.localDay.isBetweenValues(range.start.value, range.end.value),
+            meals.localDay.isBetweenValues(
+                  range.start.value,
+                  range.end.value,
+                ) &
+                ((items.amountG.isNotNull() & a100.value.isNotNull()) |
+                    (items.amountG.isNull() & aServ.value.isNotNull())),
           )
           ..groupBy([meals.localDay])
           ..orderBy([OrderingTerm.asc(meals.localDay)]);

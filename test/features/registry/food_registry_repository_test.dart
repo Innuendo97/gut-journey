@@ -85,9 +85,9 @@ void main() {
 
     final facts = await nutrition.getFacts(item.id);
     // 353 kcal/100g × 80 g = 282.4 → whole kcal; macros to one decimal.
-    expect(facts.kcalPerServing, 282);
-    expect(facts.proteinG, 8.7);
-    expect(facts.carbsG, 63.3);
+    expect(facts.legacyPerServing?.kcal, 282);
+    expect(facts.legacyPerServing?.proteinG, 8.7);
+    expect(facts.legacyPerServing?.carbsG, 63.3);
     expect(facts.servingDescription, 'una porzione (80 g)');
 
     final attributes = await foods.getAttributes(
@@ -103,12 +103,15 @@ void main() {
     // Tamper with the stored value, then re-import.
     await nutrition.saveFacts(
       first.id,
-      const NutritionFacts(kcalPerServing: 1),
+      const NutritionFacts(legacyPerServing: Nutrients(kcal: 1)),
     );
     final second = await repo.importIntoLibrary(pasta, languageCode: 'it');
 
     expect(second.id, first.id); // same library row, no duplicate
-    expect((await nutrition.getFacts(first.id)).kcalPerServing, 282);
+    expect(
+      (await nutrition.getFacts(first.id)).legacyPerServing?.kcal,
+      282,
+    );
     expect(await foods.watchLibrary().first, hasLength(1));
   });
 
@@ -119,6 +122,6 @@ void main() {
     expect(item.name, 'Red wine (100 ml)');
     final facts = await nutrition.getFacts(item.id);
     expect(facts.servingDescription, 'one glass (125 ml)');
-    expect(facts.kcalPerServing, 95); // 76 × 1.25
+    expect(facts.legacyPerServing?.kcal, 95); // 76 × 1.25
   });
 }

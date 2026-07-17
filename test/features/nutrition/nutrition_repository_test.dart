@@ -39,12 +39,10 @@ void main() {
   test('facts round-trip through the attribute table', () async {
     final rice = await foods.create('Rice');
     const facts = NutritionFacts(
-      kcalPerServing: 220,
+      per100: Nutrients(kcal: 158, proteinG: 3, carbsG: 32, fatG: 0.3),
+      servingG: 140,
+      legacyPerServing: Nutrients(kcal: 220, fiberG: 1.2),
       servingDescription: 'one bowl',
-      proteinG: 4.5,
-      carbsG: 45,
-      fatG: 0.5,
-      fiberG: 1.2,
     );
 
     await repo.saveFacts(rice.id, facts);
@@ -56,10 +54,15 @@ void main() {
     final rice = await foods.create('Rice');
     await repo.saveFacts(
       rice.id,
-      const NutritionFacts(kcalPerServing: 220, proteinG: 4.5),
+      const NutritionFacts(
+        legacyPerServing: Nutrients(kcal: 220, proteinG: 4.5),
+      ),
     );
 
-    await repo.saveFacts(rice.id, const NutritionFacts(proteinG: 4.5));
+    await repo.saveFacts(
+      rice.id,
+      const NutritionFacts(legacyPerServing: Nutrients(proteinG: 4.5)),
+    );
 
     final stored = await foods.getAttributes(
       rice.id,
@@ -68,7 +71,7 @@ void main() {
     expect(stored, {nutritionProteinKey: '4.5'});
     expect(
       await repo.getFacts(rice.id),
-      const NutritionFacts(proteinG: 4.5),
+      const NutritionFacts(legacyPerServing: Nutrients(proteinG: 4.5)),
     );
   });
 
@@ -82,7 +85,7 @@ void main() {
     );
 
     final facts = await repo.getFacts(rice.id);
-    expect(facts.kcalPerServing, isNull);
+    expect(facts.legacyPerServing, isNull);
     expect(await repo.watchKcalByFood().first, isEmpty);
   });
 
@@ -90,8 +93,14 @@ void main() {
     final rice = await foods.create('Rice');
     final salmon = await foods.create('Salmon');
     final water = await foods.create('Sparkling water'); // no kcal estimate
-    await repo.saveFacts(rice.id, const NutritionFacts(kcalPerServing: 200));
-    await repo.saveFacts(salmon.id, const NutritionFacts(kcalPerServing: 280));
+    await repo.saveFacts(
+      rice.id,
+      const NutritionFacts(legacyPerServing: Nutrients(kcal: 200)),
+    );
+    await repo.saveFacts(
+      salmon.id,
+      const NutritionFacts(legacyPerServing: Nutrients(kcal: 280)),
+    );
 
     await meals.createMeal(
       type: MealType.lunch,
@@ -138,7 +147,10 @@ void main() {
       key: nutritionKcalKey,
       value: 'abc', // CAST(abc AS REAL) → 0 in SQLite
     );
-    await repo.saveFacts(salmon.id, const NutritionFacts(kcalPerServing: 280));
+    await repo.saveFacts(
+      salmon.id,
+      const NutritionFacts(legacyPerServing: Nutrients(kcal: 280)),
+    );
 
     await meals.createMeal(
       type: MealType.lunch,
@@ -154,7 +166,10 @@ void main() {
 
   test('groups by day in chronological order over a range', () async {
     final rice = await foods.create('Rice');
-    await repo.saveFacts(rice.id, const NutritionFacts(kcalPerServing: 200));
+    await repo.saveFacts(
+      rice.id,
+      const NutritionFacts(legacyPerServing: Nutrients(kcal: 200)),
+    );
 
     await meals.createMeal(
       type: MealType.dinner,
@@ -192,10 +207,92 @@ void main() {
     expect(await totals.moveNext(), isTrue);
     expect(totals.current, isNull); // logged food, but no estimate yet
 
-    await repo.saveFacts(rice.id, const NutritionFacts(kcalPerServing: 200));
+    await repo.saveFacts(
+      rice.id,
+      const NutritionFacts(legacyPerServing: Nutrients(kcal: 200)),
+    );
 
     expect(await totals.moveNext(), isTrue);
     expect(totals.current, 400); // counted retroactively
     await totals.cancel();
+  });
+
+  test('gram rows scale the per-100g base', () async {
+    final pasta = await foods.create('Pasta');
+    await repo.saveFacts(
+      pasta.id,
+      const NutritionFacts(per100: Nutrients(kcal: 350)),
+    );
+
+    await meals.createMeal(
+      type: MealType.lunch,
+      occurredAt: lunchTime,
+      items: [MealItemInput.existing(foodItemId: pasta.id, amountG: 120)],
+    );
+
+    expect(await repo.watchDayKcal(day).first, 420); // 350 × 120 / 100
+  });
+
+  test('a day mixes historical and gram rows correctly', () async {
+    final pasta = await foods.create('Pasta');
+    final salmon = await foods.create('Salmon');
+    await repo.saveFacts(
+      pasta.id,
+      const NutritionFacts(per100: Nutrients(kcal: 350)),
+    );
+    await repo.saveFacts(
+      salmon.id,
+      const NutritionFacts(legacyPerServing: Nutrients(kcal: 280)),
+    );
+
+    await meals.createMeal(
+      type: MealType.lunch,
+      occurredAt: lunchTime,
+      items: [
+        MealItemInput.existing(foodItemId: pasta.id, amountG: 120),
+        MealItemInput.existing(foodItemId: salmon.id, quantity: 2),
+      ],
+    );
+
+    expect(await repo.watchDayKcal(day).first, 980); // 420 + 560
+  });
+
+  test('a gram row without a per-100g base is excluded, even with legacy '
+      'values', () async {
+    final cake = await foods.create('Grandma cake');
+    await repo.saveFacts(
+      cake.id,
+      const NutritionFacts(legacyPerServing: Nutrients(kcal: 400)),
+    );
+
+    await meals.createMeal(
+      type: MealType.snack,
+      occurredAt: lunchTime,
+      // Grams of a legacy-only food: servings ≠ grams, so no formula
+      // applies — the item must not pollute the total.
+      items: [MealItemInput.existing(foodItemId: cake.id, amountG: 80)],
+    );
+
+    expect(await repo.watchDayKcal(day).first, isNull);
+  });
+
+  test('a historical row keeps the legacy formula even when per-100g '
+      'exists', () async {
+    final rice = await foods.create('Rice');
+    await repo.saveFacts(
+      rice.id,
+      const NutritionFacts(
+        per100: Nutrients(kcal: 130),
+        legacyPerServing: Nutrients(kcal: 220),
+      ),
+    );
+
+    await meals.createMeal(
+      type: MealType.dinner,
+      occurredAt: lunchTime,
+      items: [MealItemInput.existing(foodItemId: rice.id, quantity: 2)],
+    );
+
+    expect(await repo.watchDayKcal(day).first, 440); // legacy 220 × 2
   });
 }

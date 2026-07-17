@@ -57,15 +57,15 @@ class _FoodNutritionSheetState extends ConsumerState<FoodNutritionSheet> {
   @override
   void initState() {
     super.initState();
-    final initial = widget.initial;
-    _kcal = TextEditingController(text: _format(initial.kcalPerServing));
+    final initial = widget.initial.legacyPerServing;
+    _kcal = TextEditingController(text: _format(initial?.kcal));
     _servingDesc = TextEditingController(
-      text: initial.servingDescription ?? '',
+      text: widget.initial.servingDescription ?? '',
     );
-    _protein = TextEditingController(text: _format(initial.proteinG));
-    _carbs = TextEditingController(text: _format(initial.carbsG));
-    _fat = TextEditingController(text: _format(initial.fatG));
-    _fiber = TextEditingController(text: _format(initial.fiberG));
+    _protein = TextEditingController(text: _format(initial?.proteinG));
+    _carbs = TextEditingController(text: _format(initial?.carbsG));
+    _fat = TextEditingController(text: _format(initial?.fatG));
+    _fiber = TextEditingController(text: _format(initial?.fiberG));
   }
 
   @override
@@ -95,15 +95,20 @@ class _FoodNutritionSheetState extends ConsumerState<FoodNutritionSheet> {
 
   Future<void> _save() async {
     setState(() => _saving = true);
-    final initial = widget.initial;
+    final initial = widget.initial.legacyPerServing;
     final servingDesc = _servingDesc.text.trim();
+    final legacy = Nutrients(
+      kcal: _parse(_kcal.text, initial?.kcal),
+      proteinG: _parse(_protein.text, initial?.proteinG),
+      carbsG: _parse(_carbs.text, initial?.carbsG),
+      fatG: _parse(_fat.text, initial?.fatG),
+      fiberG: _parse(_fiber.text, initial?.fiberG),
+    );
     final facts = NutritionFacts(
-      kcalPerServing: _parse(_kcal.text, initial.kcalPerServing),
+      per100: widget.initial.per100,
+      servingG: widget.initial.servingG,
+      legacyPerServing: legacy.isEmpty ? null : legacy,
       servingDescription: servingDesc.isEmpty ? null : servingDesc,
-      proteinG: _parse(_protein.text, initial.proteinG),
-      carbsG: _parse(_carbs.text, initial.carbsG),
-      fatG: _parse(_fat.text, initial.fatG),
-      fiberG: _parse(_fiber.text, initial.fiberG),
     );
     await ref
         .read(nutritionRepositoryProvider)

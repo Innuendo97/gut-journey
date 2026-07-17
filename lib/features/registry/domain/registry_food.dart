@@ -112,12 +112,14 @@ class RegistryFood {
     double perServing(double per100) =>
         ((per100 * servingG / 100) * 10).roundToDouble() / 10;
     return NutritionFacts(
-      kcalPerServing: kcalPerServing.roundToDouble(),
+      legacyPerServing: Nutrients(
+        kcal: kcalPerServing.roundToDouble(),
+        proteinG: perServing(protein100),
+        carbsG: perServing(carbs100),
+        fatG: perServing(fat100),
+        fiberG: perServing(fiber100),
+      ),
       servingDescription: servingDescription(languageCode),
-      proteinG: perServing(protein100),
-      carbsG: perServing(carbs100),
-      fatG: perServing(fat100),
-      fiberG: perServing(fiber100),
     );
   }
 }

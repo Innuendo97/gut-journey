@@ -123,22 +123,25 @@ class MealRepository {
   ) async {
     final foodIds = <String>[];
     for (final item in items) {
-      final (foodId, portion, quantity) = switch (item) {
+      final (foodId, portion, quantity, amountG) = switch (item) {
         ExistingFoodInput(
           :final foodItemId,
           :final portionDescription,
           :final quantity,
+          :final amountG,
         ) =>
-          (foodItemId, portionDescription, quantity),
+          (foodItemId, portionDescription, quantity, amountG),
         NewFoodInput(
           :final name,
           :final portionDescription,
           :final quantity,
+          :final amountG,
         ) =>
           (
             (await _foods.getOrCreateByName(name)).id,
             portionDescription,
             quantity,
+            amountG,
           ),
       };
       await _db
@@ -150,6 +153,7 @@ class MealRepository {
               foodItemId: foodId,
               portionDescription: Value(portion),
               quantity: Value(quantity),
+              amountG: Value(amountG),
             ),
           );
       foodIds.add(foodId);
@@ -182,6 +186,7 @@ class MealRepository {
               food: foodRow.toDomain(),
               portionDescription: itemRow.portionDescription,
               quantity: itemRow.quantity,
+              amountG: itemRow.amountG,
             ),
           ],
         );
