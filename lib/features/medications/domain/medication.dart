@@ -19,6 +19,7 @@ abstract class Medication with _$Medication {
     String? dosage,
     LocalDay? endDay,
     @Default(true) bool isActive,
+    @Default(false) bool remindersEnabled,
     String? notes,
   }) = _Medication;
 

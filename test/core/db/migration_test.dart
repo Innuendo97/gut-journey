@@ -7,6 +7,7 @@ import '../../generated/schema.dart';
 import '../../generated/schema_v1.dart' as v1;
 import '../../generated/schema_v2.dart' as v2;
 import '../../generated/schema_v3.dart' as v3;
+import '../../generated/schema_v4.dart' as v4;
 
 /// Every schema bump gets its scenario here: local-first apps must never
 /// eat user data, so each migration is validated end-state AND replayed
@@ -23,7 +24,7 @@ void main() {
     final db = AppDatabase(connection);
     addTearDown(db.close);
 
-    await verifier.migrateAndValidate(db, 4);
+    await verifier.migrateAndValidate(db, 5);
   });
 
   test('migrates an empty v2 database to v3', () async {
@@ -40,6 +41,14 @@ void main() {
     addTearDown(db.close);
 
     await verifier.migrateAndValidate(db, 4);
+  });
+
+  test('migrates an empty v4 database to v5', () async {
+    final connection = await verifier.startAt(4);
+    final db = AppDatabase(connection);
+    addTearDown(db.close);
+
+    await verifier.migrateAndValidate(db, 5);
   });
 
   test('v1 diary data survives the migration to v2', () async {
@@ -235,5 +244,59 @@ void main() {
         .write(const MealEntryItemsCompanion(amountG: Value(120)));
     final updated = await db.select(db.mealEntryItems).getSingle();
     expect(updated.amountG, 120.0);
+  });
+
+  test('v4 medication data survives the migration to v5', () async {
+    const stamp = '2026-07-18T08:00:00.000Z';
+    final schema = await verifier.schemaAt(4);
+
+    final before = v4.DatabaseAtV4(schema.newConnection());
+    await before
+        .into(before.medications)
+        .insert(
+          v4.MedicationsCompanion.insert(
+            id: 'med-1',
+            createdAt: stamp,
+            updatedAt: stamp,
+            name: 'Mesalazine',
+            scheduleType: 'daily',
+            scheduledTimes: const Value('["08:00","20:00"]'),
+            startDay: '2026-07-01',
+            endDay: const Value('2026-08-01'),
+          ),
+        );
+    await before
+        .into(before.medicationIntakes)
+        .insert(
+          v4.MedicationIntakesCompanion.insert(
+            id: 'intake-1',
+            createdAt: stamp,
+            updatedAt: stamp,
+            occurredAt: stamp,
+            localDay: '2026-07-18',
+            medicationId: 'med-1',
+            status: 'taken',
+            scheduledTime: const Value('08:00'),
+          ),
+        );
+    await before.close();
+
+    final db = AppDatabase(schema.newConnection());
+    addTearDown(db.close);
+    await verifier.migrateAndValidate(db, 5);
+
+    final med = await db.select(db.medications).getSingle();
+    expect(med.name, 'Mesalazine');
+    expect(med.startDay, '2026-07-01');
+    expect(med.endDay, '2026-08-01');
+    // The new column arrives false (reminders are opt-in) and writable.
+    expect(med.remindersEnabled, isFalse);
+    await (db.update(db.medications)..where((t) => t.id.equals('med-1'))).write(
+      const MedicationsCompanion(remindersEnabled: Value(true)),
+    );
+    final updated = await db.select(db.medications).getSingle();
+    expect(updated.remindersEnabled, isTrue);
+    final intake = await db.select(db.medicationIntakes).getSingle();
+    expect(intake.scheduledTime, '08:00');
   });
 }

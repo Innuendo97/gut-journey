@@ -40,6 +40,7 @@ class MedicationRepository {
     List<String> scheduledTimes = const [],
     String? dosage,
     LocalDay? endDay,
+    bool remindersEnabled = false,
     String? notes,
   }) async {
     final id = newEntryId();
@@ -55,6 +56,7 @@ class MedicationRepository {
             dosage: Value(dosage),
             startDay: startDay.value,
             endDay: Value(endDay?.value),
+            remindersEnabled: Value(remindersEnabled),
             notes: Value(notes),
             createdAt: now,
             updatedAt: now,
@@ -75,7 +77,17 @@ class MedicationRepository {
         startDay: Value(medication.startDay.value),
         endDay: Value(medication.endDay?.value),
         isActive: Value(medication.isActive),
+        remindersEnabled: Value(medication.remindersEnabled),
         notes: Value(medication.notes),
+        updatedAt: Value(_clock().toUtc()),
+      ),
+    );
+  }
+
+  Future<void> setRemindersEnabled(String id, {required bool enabled}) async {
+    await (_db.update(_db.medications)..where((t) => t.id.equals(id))).write(
+      MedicationsCompanion(
+        remindersEnabled: Value(enabled),
         updatedAt: Value(_clock().toUtc()),
       ),
     );
@@ -222,6 +234,7 @@ extension MedicationRowToDomain on MedicationRow {
     startDay: LocalDay(startDay),
     endDay: endDay == null ? null : LocalDay(endDay!),
     isActive: isActive,
+    remindersEnabled: remindersEnabled,
     notes: notes,
   );
 }

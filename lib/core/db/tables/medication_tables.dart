@@ -18,6 +18,10 @@ class Medications extends Table with AuditColumns {
   TextColumn get startDay => text().withLength(min: 10, max: 10)();
   TextColumn get endDay => text().withLength(min: 10, max: 10).nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+
+  /// Opt-in local reminder notifications at [scheduledTimes] (v5).
+  BoolColumn get remindersEnabled =>
+      boolean().withDefault(const Constant(false))();
   TextColumn get notes => text().nullable()();
 }
 
