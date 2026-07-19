@@ -239,6 +239,7 @@
     }
   },
   "sectionActivity": "Activity (minutes)",
+  "sectionNutrition": "Estimated energy",
   "sectionAdherence": "Medication adherence",
   "adherencePercent": "{pct}%",
   "@adherencePercent": {
@@ -318,6 +319,8 @@
       "total": {"type": "int"}
     }
   },
+  "reportColDate": "Date",
+  "reportColKcal": "kcal",
   "reportColSymptom": "Symptom",
   "reportColCount": "Count",
   "reportColAvgIntensity": "Avg intensity (1–10)",

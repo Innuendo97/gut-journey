@@ -23,6 +23,7 @@ class ReportData {
     required this.activityDaily,
     required this.adherence,
     required this.medicationsById,
+    this.kcalByDay = const {},
     this.days,
   });
 
@@ -43,6 +44,11 @@ class ReportData {
   /// Includes inactive medications so old intakes in the daily log still
   /// resolve to a name.
   final Map<String, Medication> medicationsById;
+
+  /// Estimated kcal totals keyed by LocalDay.value ('YYYY-MM-DD'); days
+  /// without any kcal-bearing item are absent, an empty map means no
+  /// nutrition data at all.
+  final Map<String, double> kcalByDay;
 
   /// Non-empty days in chronological order; null when the daily log was not
   /// requested.

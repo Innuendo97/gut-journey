@@ -1,3 +1,6 @@
+import 'dart:convert' show latin1;
+import 'dart:io' show zlib;
+
 import 'package:flutter/material.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gut_journey/core/domain/date_range.dart';
@@ -26,6 +29,86 @@ import 'package:gut_journey/l10n/generated/app_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+/// Recovers every string the document draws, in drawing order, words
+/// joined by single spaces (each word is its own text operation, so the
+/// original spacing is gone). Text is stored as glyph indices of the
+/// embedded TTF fonts; this maps them back through each font's /ToUnicode
+/// CMap.
+Future<String> extractPdfText(pw.Document doc) async {
+  final raw = latin1.decode(await doc.save());
+
+  // Objects: number → dictionary text and inflated stream text.
+  final dicts = <int, String>{};
+  final streams = <int, String>{};
+  final header = RegExp(r'(\d+) 0 obj');
+  final streamKeyword = RegExp(r'>>\s*stream\r?\n');
+  var pos = 0;
+  for (;;) {
+    Match? m;
+    for (final candidate in header.allMatches(raw, pos)) {
+      m = candidate;
+      break;
+    }
+    if (m == null) break;
+    final number = int.parse(m[1]!);
+    final tail = raw.substring(m.end);
+    final stream = streamKeyword.firstMatch(tail);
+    final endObj = tail.indexOf('endobj');
+    if (stream != null && (endObj == -1 || stream.start < endObj)) {
+      final dict = tail.substring(0, stream.start + 2);
+      dicts[number] = dict;
+      // /Length is always a direct number in the pdf package, and binary
+      // stream data may contain 'endobj' bytes — slice by length instead.
+      final length = int.parse(RegExp(r'/Length (\d+)').firstMatch(dict)![1]!);
+      final data = tail.substring(stream.end, stream.end + length);
+      try {
+        streams[number] = latin1.decode(zlib.decode(latin1.encode(data)));
+      } on Object {
+        streams[number] = data; // Not deflated.
+      }
+      pos = m.end + stream.end + length;
+    } else {
+      dicts[number] = endObj == -1 ? tail : tail.substring(0, endObj);
+      pos = endObj == -1 ? raw.length : m.end + endObj;
+    }
+  }
+
+  // Font resource name ('/F<objser>') → glyph index → rune.
+  final cmaps = <String, Map<int, int>>{};
+  for (final entry in dicts.entries) {
+    final toUnicode = RegExp(r'/ToUnicode (\d+) 0 R').firstMatch(entry.value);
+    if (toUnicode == null) continue;
+    cmaps['F${entry.key}'] = {
+      for (final pair in RegExp(
+        '<([0-9A-Fa-f]{4})> <([0-9A-Fa-f]{4})>',
+      ).allMatches(streams[int.parse(toUnicode[1]!)] ?? ''))
+        int.parse(pair[1]!, radix: 16): int.parse(pair[2]!, radix: 16),
+    };
+  }
+
+  // Content streams: track the selected font, decode every [<glyphs>]TJ.
+  final words = <String>[];
+  final token = RegExp(r'/(F\d+) [\d.]+ Tf|<([0-9A-Fa-f]+)>\]TJ');
+  for (final stream in streams.values) {
+    if (!stream.contains('BT')) continue;
+    Map<int, int>? cmap;
+    for (final m in token.allMatches(stream)) {
+      if (m[1] != null) {
+        cmap = cmaps[m[1]!];
+      } else if (cmap != null) {
+        final hex = m[2]!;
+        words.add(
+          String.fromCharCodes([
+            for (var i = 0; i + 4 <= hex.length; i += 4)
+              cmap[int.parse(hex.substring(i, i + 4), radix: 16)] ?? 0x3F,
+          ]),
+        );
+      }
+    }
+  }
+  return words.join(' ');
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late pw.ThemeData theme;
@@ -53,6 +136,10 @@ void main() {
             MealItem(
               food: FoodItem(id: 'food-1', name: 'Caffè žažolí'),
               portionDescription: '1 tazza',
+            ),
+            MealItem(
+              food: FoodItem(id: 'food-2', name: 'Pasta'),
+              amountG: 120,
             ),
           ],
           notes: 'Con «virgolette» tipografiche',
@@ -122,7 +209,10 @@ void main() {
     );
   }
 
-  ReportData fixture({List<DiaryDay>? days}) {
+  ReportData fixture({
+    List<DiaryDay>? days,
+    Map<String, double> kcalByDay = const {},
+  }) {
     final medication = Medication(
       id: 'med-1',
       name: 'Ranitidină forte',
@@ -160,6 +250,7 @@ void main() {
         (medication, const AdherenceSummary(expectedDoses: 90, takenDoses: 81)),
       ],
       medicationsById: {'med-1': medication},
+      kcalByDay: kcalByDay,
       days: days,
     );
   }
@@ -198,6 +289,43 @@ void main() {
     final summaryPages = summaryOnly.document.pdfPageList.pages.length;
     expect(logPages, greaterThan(1));
     expect(summaryPages, lessThan(logPages));
+  });
+
+  test('renders kcal totals, gram amounts and the nutrition section', () async {
+    final day = LocalDay('2026-07-08');
+    final doc = await buildReportDocument(
+      data: fixture(
+        days: [fullDay(day)],
+        kcalByDay: {'2026-07-08': 640.4, '2026-07-09': 512},
+      ),
+      l10n: lookupAppLocalizations(const Locale('en')),
+      localeTag: 'en',
+      theme: theme,
+      generatedAt: generatedAt,
+    );
+    final text = await extractPdfText(doc);
+
+    // Day header carries the day's estimated total, rounded.
+    expect(text, contains('640 kcal'));
+    // Gram amounts on meal items, portion-description fallback preserved.
+    expect(text, contains('Pasta 120 g'));
+    expect(text, contains('Caffè žažolí (1 tazza)'));
+    // Summary section with one row per day.
+    expect(text, contains('Estimated energy'));
+    expect(text, contains('512 kcal'));
+  });
+
+  test('omits the nutrition section without kcal data', () async {
+    final doc = await buildReportDocument(
+      data: fixture(),
+      l10n: lookupAppLocalizations(const Locale('en')),
+      localeTag: 'en',
+      theme: theme,
+      generatedAt: generatedAt,
+    );
+    final text = await extractPdfText(doc);
+    expect(text, isNot(contains('Estimated energy')));
+    expect(text, isNot(contains('kcal')));
   });
 
   test('renders when every section is empty', () async {

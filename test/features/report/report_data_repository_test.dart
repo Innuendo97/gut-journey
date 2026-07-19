@@ -11,6 +11,8 @@ import 'package:gut_journey/features/meals/domain/meal_entry.dart';
 import 'package:gut_journey/features/meals/domain/meal_type.dart';
 import 'package:gut_journey/features/medications/data/medication_repository.dart';
 import 'package:gut_journey/features/medications/domain/medication_enums.dart';
+import 'package:gut_journey/features/nutrition/data/nutrition_repository.dart';
+import 'package:gut_journey/features/nutrition/domain/nutrition_facts.dart';
 import 'package:gut_journey/features/report/data/report_data_repository.dart';
 import 'package:gut_journey/features/sleep/data/sleep_repository.dart';
 import 'package:gut_journey/features/stats/data/stats_repository.dart';
@@ -31,7 +33,9 @@ void main() {
   late SleepRepository sleep;
   late ActivityRepository activity;
   late MedicationRepository medications;
+  late FoodRepository foods;
   late MealRepository meals;
+  late NutritionRepository nutrition;
   late ReportDataRepository report;
 
   final range = DateRange(LocalDay('2026-07-08'), LocalDay('2026-07-14'));
@@ -46,8 +50,9 @@ void main() {
     sleep = SleepRepository(db, clock.call);
     activity = ActivityRepository(db, clock.call);
     medications = MedicationRepository(db, clock.call);
-    final foods = FoodRepository(db, clock.call);
+    foods = FoodRepository(db, clock.call);
     meals = MealRepository(db, foods, clock.call);
+    nutrition = NutritionRepository(db, foods);
     report = ReportDataRepository(
       stats: StatsRepository(db, medications),
       diary: DiaryRepository(
@@ -63,6 +68,7 @@ void main() {
       ),
       symptoms: symptoms,
       medications: medications,
+      nutrition: nutrition,
     );
   });
 
@@ -101,7 +107,37 @@ void main() {
     expect(data.weightDaily.single.value, 70);
     expect(data.waterDaily.single.value, 750);
     expect(data.waterGoalMl, 2000);
+    // No food in the range has a kcal estimate → no nutrition data at all.
+    expect(data.kcalByDay, isEmpty);
     expect(data.days, isNull);
+  });
+
+  test('kcalByDay maps per-day totals for the range only', () async {
+    final pasta = await foods.create('Pasta');
+    await nutrition.saveFacts(
+      pasta.id,
+      const NutritionFacts(per100: Nutrients(kcal: 150)),
+    );
+    await meals.createMeal(
+      type: MealType.lunch,
+      occurredAt: DateTime(2026, 7, 10, 13),
+      items: [MealItemInput.existing(foodItemId: pasta.id, amountG: 120)],
+    );
+    // Outside the range — must not appear.
+    await meals.createMeal(
+      type: MealType.dinner,
+      occurredAt: DateTime(2026, 7, 1, 20),
+      items: [MealItemInput.existing(foodItemId: pasta.id, amountG: 200)],
+    );
+
+    final data = await report.collect(
+      range: range,
+      includeDailyLog: false,
+      waterGoalMl: 2000,
+    );
+
+    // 150 kcal / 100 g × 120 g.
+    expect(data.kcalByDay, {'2026-07-10': 180.0});
   });
 
   test('daily log keeps only non-empty days, chronologically', () async {
