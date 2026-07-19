@@ -54,8 +54,11 @@ void main() {
     await tester.tapAt(const Offset(20, 40)); // dismiss the sheet
     await tester.pumpAndSettle();
 
-    // July 8 from History is covered: log the 08:00 dose there.
+    // July 8 from History is covered: log the 08:00 dose there. The month
+    // calendar is on demand now — open it from the header first.
     await tester.tap(find.text('History'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Open calendar'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('8').first);
     await tester.pumpAndSettle();

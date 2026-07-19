@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/core/widgets/empty_state.dart';
+import 'package:gut_journey/features/diary/presentation/day_summary_strip.dart';
 import 'package:gut_journey/features/diary/presentation/diary_providers.dart';
 import 'package:gut_journey/features/diary/presentation/entry_timeline.dart';
 import 'package:gut_journey/features/diary/presentation/today_screen.dart';

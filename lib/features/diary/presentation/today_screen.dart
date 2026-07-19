@@ -6,14 +6,10 @@ import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/core/providers/clock_provider.dart';
 import 'package:gut_journey/features/activity/presentation/activity_quick_add_sheet.dart';
 import 'package:gut_journey/features/bowel/presentation/bowel_quick_add_sheet.dart';
-import 'package:gut_journey/features/diary/domain/diary_day.dart';
 import 'package:gut_journey/features/diary/presentation/diary_day_body.dart';
 import 'package:gut_journey/features/diary/presentation/diary_providers.dart';
 import 'package:gut_journey/features/meals/presentation/meal_quick_add_sheet.dart';
-import 'package:gut_journey/features/medications/domain/medication_enums.dart';
 import 'package:gut_journey/features/medications/presentation/medication_quick_add_sheet.dart';
-import 'package:gut_journey/features/nutrition/presentation/nutrition_providers.dart';
-import 'package:gut_journey/features/settings/data/settings_repository.dart';
 import 'package:gut_journey/features/sleep/presentation/sleep_quick_add_sheet.dart';
 import 'package:gut_journey/features/symptoms/presentation/symptom_quick_add_sheet.dart';
 import 'package:gut_journey/features/water/data/water_repository.dart';
@@ -21,49 +17,71 @@ import 'package:gut_journey/features/weight/presentation/weight_quick_add_sheet.
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
 import 'package:intl/intl.dart';
 
+/// The home tab: always pinned to the current day. Past days are reviewed
+/// and back-filled from History instead.
 class TodayScreen extends ConsumerWidget {
   const TodayScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final day = ref.watch(selectedDayProvider);
-    final today = LocalDay.fromDateTime(ref.watch(clockProvider)());
+    final now = ref.watch(clockProvider)();
+    final today = LocalDay.fromDateTime(now);
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left),
-          onPressed: () => ref.read(selectedDayProvider.notifier).previousDay(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _GreetingHeader(now: now),
+            Expanded(child: DiaryDayBody(day: today)),
+          ],
         ),
-        title: Text(_dayTitle(context, day, today)),
-        centerTitle: true,
-        actions: [
-          if (day != today)
-            IconButton(
-              icon: const Icon(Icons.today_outlined),
-              tooltip: l10n.todayLabel,
-              onPressed: () =>
-                  ref.read(selectedDayProvider.notifier).goToToday(),
-            ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right),
-            onPressed: day.isBefore(today)
-                ? () => ref.read(selectedDayProvider.notifier).nextDay()
-                : null,
-          ),
-        ],
       ),
-      body: DiaryDayBody(day: day),
     );
   }
+}
 
-  String _dayTitle(BuildContext context, LocalDay day, LocalDay today) {
+/// Greeting by time of day plus the full date — Today's replacement for an
+/// app bar.
+class _GreetingHeader extends StatelessWidget {
+  const _GreetingHeader({required this.now});
+
+  final DateTime now;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    if (day == today) return l10n.todayLabel;
-    if (day == today.previous) return l10n.yesterdayLabel;
+    final theme = Theme.of(context);
+    final greeting = switch (now.hour) {
+      < 12 => l10n.todayGreetingMorning,
+      < 18 => l10n.todayGreetingAfternoon,
+      _ => l10n.todayGreetingEvening,
+    };
     final locale = Localizations.localeOf(context).toString();
-    return DateFormat.MMMEd(locale).format(day.toDateTime());
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              greeting,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              DateFormat.yMMMMEEEEd(locale).format(now),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -195,202 +213,6 @@ class _QuickAddButton extends StatelessWidget {
             const SizedBox(height: 4),
             Text(label, style: theme.textTheme.labelSmall),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Compact water + medications (and, when tracked, estimated kcal)
-/// overview for the day.
-class DaySummaryStrip extends ConsumerWidget {
-  const DaySummaryStrip({required this.diaryDay, super.key});
-
-  final DiaryDay diaryDay;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final goal = ref.watch(settingsProvider).waterGoalMl;
-    final medications = ref.watch(medicationsOnDayProvider(diaryDay.day));
-    final expectedDoses = medications.fold<int>(
-      0,
-      (sum, med) => sum + med.expectedSlotsOn(diaryDay.day).length,
-    );
-    final takenDoses = diaryDay.medicationIntakes
-        .where((intake) => intake.status == IntakeStatus.taken)
-        .length;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-      child: Column(
-        children: [
-          _buildWaterMedsRow(
-            context,
-            ref,
-            l10n,
-            theme,
-            goal,
-            expectedDoses,
-            takenDoses,
-          ),
-          _KcalCard(day: diaryDay.day),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWaterMedsRow(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-    ThemeData theme,
-    int goal,
-    int expectedDoses,
-    int takenDoses,
-  ) {
-    return
-    // IntrinsicHeight keeps the two cards equal-height inside the
-    // unbounded-height ListView.
-    IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.waterCardTitle,
-                      style: theme.textTheme.labelMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.waterProgress(diaryDay.totalWaterMl, goal),
-                      style: theme.textTheme.titleSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      value: goal == 0
-                          ? 0
-                          : (diaryDay.totalWaterMl / goal)
-                                .clamp(0, 1)
-                                .toDouble(),
-                    ),
-                    const SizedBox(height: 4),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => unawaited(
-                          ref
-                              .read(waterRepositoryProvider)
-                              .add(
-                                amountMl: 250,
-                                occurredAt: _waterMoment(ref),
-                              ),
-                        ),
-                        child: Text(l10n.addWater250),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Card(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () => unawaited(
-                  MedicationQuickAddSheet.show(context, day: diaryDay.day),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.medsCardTitle,
-                        style: theme.textTheme.labelMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        expectedDoses == 0 && takenDoses == 0
-                            ? l10n.medsNoneScheduled
-                            : l10n.medsProgress(takenDoses, expectedDoses),
-                        style: theme.textTheme.titleSmall,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  DateTime _waterMoment(WidgetRef ref) {
-    final now = ref.read(clockProvider)();
-    return LocalDay.fromDateTime(now) == diaryDay.day
-        ? now
-        : diaryDay.day.toDateTime().add(const Duration(hours: 12));
-  }
-}
-
-/// Estimated energy of the day. Hidden until the user opts in — either by
-/// giving foods kcal estimates or by setting a daily goal; the progress
-/// bar needs the goal. Totals are estimates, never advice.
-class _KcalCard extends ConsumerWidget {
-  const _KcalCard({required this.day});
-
-  final LocalDay day;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final goal = ref.watch(settingsProvider).kcalGoal;
-    final dayKcal = ref.watch(dayKcalProvider(day)).value;
-    if (dayKcal == null && goal <= 0) return const SizedBox.shrink();
-
-    final total = (dayKcal ?? 0).round();
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: SizedBox(
-        width: double.infinity,
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.nutritionCardTitle,
-                  style: theme.textTheme.labelMedium,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  goal > 0
-                      ? l10n.nutritionKcalProgress(total, goal)
-                      : l10n.nutritionKcalValue(total),
-                  style: theme.textTheme.titleSmall,
-                ),
-                if (goal > 0) ...[
-                  const SizedBox(height: 8),
-                  LinearProgressIndicator(
-                    value: (total / goal).clamp(0, 1).toDouble(),
-                  ),
-                ],
-              ],
-            ),
-          ),
         ),
       ),
     );

@@ -104,28 +104,18 @@ void main() {
     expect(find.text('250 / 2000 ml'), findsOneWidget);
   });
 
-  testApp('day navigation shows yesterday and disables the future', (
+  testApp('Today greets by time of day and stays pinned to the clock', (
     tester,
     harness,
   ) async {
-    final today = LocalDay.fromDateTime(harness.clock.now);
+    // FixedClock pins the clock to 2026-07-14 12:00 → afternoon.
+    expect(LocalDay.fromDateTime(harness.clock.now), LocalDay('2026-07-14'));
+    expect(find.text('Good afternoon'), findsOneWidget);
+    expect(find.text('Tuesday, July 14, 2026'), findsOneWidget);
 
-    expect(find.text('Today'), findsWidgets);
-
-    await tester.tap(find.byIcon(Icons.chevron_left));
-    await tester.pumpAndSettle();
-    expect(find.text('Yesterday'), findsOneWidget);
-
-    await tester.tap(find.byIcon(Icons.chevron_right));
-    await tester.pumpAndSettle();
-    expect(find.text('Yesterday'), findsNothing);
-
-    // On today, the forward arrow is disabled.
-    final forward = tester.widget<IconButton>(
-      find.widgetWithIcon(IconButton, Icons.chevron_right),
-    );
-    expect(forward.onPressed, isNull);
-    expect(today, LocalDay('2026-07-14'));
+    // Day navigation lives on History now — no chevrons on Today.
+    expect(find.byIcon(Icons.chevron_left), findsNothing);
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
   });
 
   testApp('the estimated-kcal card appears once foods have estimates', (
@@ -155,6 +145,11 @@ void main() {
     expect(find.text('400 kcal'), findsOneWidget);
     // Goal off → plain total; the only progress bar is the water one.
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+    // The kcal card is the headline: it sits above the water card.
+    final kcalTop = tester.getTopLeft(find.text('Energy (estimated)')).dy;
+    final waterTop = tester.getTopLeft(find.text('0 / 2000 ml')).dy;
+    expect(kcalTop, lessThan(waterTop));
   });
 
   testApp('a kcal goal turns the Today card into progress', (

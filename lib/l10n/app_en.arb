@@ -18,6 +18,12 @@
   "entryDeleted": "Entry deleted",
   "todayLabel": "Today",
   "yesterdayLabel": "Yesterday",
+  "todayGreetingMorning": "Good morning",
+  "todayGreetingAfternoon": "Good afternoon",
+  "todayGreetingEvening": "Good evening",
+  "historyPreviousDay": "Previous day",
+  "historyNextDay": "Next day",
+  "historyOpenCalendar": "Open calendar",
 
   "emptyDayTitle": "Nothing logged yet",
   "emptyDaySubtitle": "Use the buttons above to log your day — it only takes a moment.",
