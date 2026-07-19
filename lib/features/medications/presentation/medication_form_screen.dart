@@ -7,6 +7,7 @@ import 'package:gut_journey/core/providers/clock_provider.dart';
 import 'package:gut_journey/features/medications/data/medication_repository.dart';
 import 'package:gut_journey/features/medications/domain/medication.dart';
 import 'package:gut_journey/features/medications/domain/medication_enums.dart';
+import 'package:gut_journey/features/medications/reminders/notification_scheduler.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
 import 'package:intl/intl.dart';
 
@@ -28,6 +29,7 @@ class _MedicationFormScreenState extends ConsumerState<MedicationFormScreen> {
   late List<String> _times;
   late LocalDay _startDay;
   LocalDay? _endDay;
+  late bool _remindersEnabled;
   var _saving = false;
   String? _nameError;
   String? _dateError;
@@ -45,6 +47,28 @@ class _MedicationFormScreenState extends ConsumerState<MedicationFormScreen> {
     _startDay =
         existing?.startDay ?? LocalDay.fromDateTime(ref.read(clockProvider)());
     _endDay = existing?.endDay;
+    _remindersEnabled = existing?.remindersEnabled ?? false;
+  }
+
+  /// Enabling reminders needs notification permission (Android 13+): on
+  /// denial the switch snaps back and says why.
+  Future<void> _toggleReminders(bool enabled) async {
+    if (!enabled) {
+      setState(() => _remindersEnabled = false);
+      return;
+    }
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final granted = await ref
+        .read(notificationSchedulerProvider)
+        .requestPermission();
+    if (!mounted) return;
+    setState(() => _remindersEnabled = granted);
+    if (!granted) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.medicationRemindersDenied)),
+      );
+    }
   }
 
   @override
@@ -127,6 +151,8 @@ class _MedicationFormScreenState extends ConsumerState<MedicationFormScreen> {
         ? _times
         : const <String>[];
     final existing = widget.existing;
+    // Reminders only make sense for scheduled therapies.
+    final reminders = _scheduleType == ScheduleType.daily && _remindersEnabled;
     if (existing == null) {
       await repo.createMedication(
         name: name,
@@ -135,6 +161,7 @@ class _MedicationFormScreenState extends ConsumerState<MedicationFormScreen> {
         scheduledTimes: times,
         startDay: _startDay,
         endDay: _endDay,
+        remindersEnabled: reminders,
       );
     } else {
       await repo.updateMedication(
@@ -145,6 +172,7 @@ class _MedicationFormScreenState extends ConsumerState<MedicationFormScreen> {
           scheduledTimes: times,
           startDay: _startDay,
           endDay: _endDay,
+          remindersEnabled: reminders,
         ),
       );
     }
@@ -308,6 +336,15 @@ class _MedicationFormScreenState extends ConsumerState<MedicationFormScreen> {
                   onPressed: () => unawaited(_addTime()),
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary: const Icon(Icons.notifications_outlined),
+              title: Text(l10n.medicationRemindersLabel),
+              subtitle: Text(l10n.medicationRemindersSubtitle),
+              value: _remindersEnabled,
+              onChanged: (value) => unawaited(_toggleReminders(value)),
             ),
           ],
           const SizedBox(height: 32),

@@ -221,6 +221,19 @@
   "medicationNoEndDay": "No end date",
   "medicationClearEndDay": "Clear end date",
   "medicationEndBeforeStartError": "End date can't be before the start date",
+  "medicationRemindersLabel": "Daily reminders",
+  "medicationRemindersSubtitle": "Notify at the scheduled times",
+  "medicationRemindersDenied": "Notifications are disabled — reminders stay off",
+  "notificationChannelName": "Medication reminders",
+  "notificationChannelDescription": "Reminders at the scheduled times of your therapy",
+  "medicationReminderBody": "Scheduled dose: {time}",
+  "@medicationReminderBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "activeLabel": "Active",
   "inactiveLabel": "Inactive",
   "deleteMedication": "Delete medication",
