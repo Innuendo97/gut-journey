@@ -15,5 +15,11 @@ ThemeData buildAppTheme(Brightness brightness) {
     inputDecorationTheme: const InputDecorationTheme(
       border: OutlineInputBorder(),
     ),
+    // Flat tonal cards: calm surfaces instead of shadows.
+    cardTheme: CardThemeData(
+      elevation: 0,
+      color: colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    ),
   );
 }

@@ -145,6 +145,11 @@ void main() {
     expect(find.text('400 kcal'), findsOneWidget);
     // Goal off → plain total; the only progress bar is the water one.
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+    // The kcal card is the headline: it sits above the water card.
+    final kcalTop = tester.getTopLeft(find.text('Energy (estimated)')).dy;
+    final waterTop = tester.getTopLeft(find.text('0 / 2000 ml')).dy;
+    expect(kcalTop, lessThan(waterTop));
   });
 
   testApp('a kcal goal turns the Today card into progress', (
