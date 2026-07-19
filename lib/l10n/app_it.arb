@@ -105,6 +105,8 @@
   "skipAction": "Salta",
   "takenStatus": "Preso",
   "skippedStatus": "Saltato",
+  "skippedAt": "Saltato · {time}",
+  "medicationSlotClear": "Rimuovi",
   "takenAt": "Preso · {time}",
   "noMedications": "Nessun farmaco",
   "manageMedications": "Gestisci farmaci",

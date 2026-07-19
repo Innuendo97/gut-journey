@@ -142,6 +142,15 @@
   "skipAction": "Skip",
   "takenStatus": "Taken",
   "skippedStatus": "Skipped",
+  "skippedAt": "Skipped · {time}",
+  "@skippedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "medicationSlotClear": "Clear",
   "takenAt": "Taken · {time}",
   "@takenAt": {
     "placeholders": {

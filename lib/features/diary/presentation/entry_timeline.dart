@@ -16,6 +16,7 @@ import 'package:gut_journey/features/meals/presentation/meal_quick_add_sheet.dar
 import 'package:gut_journey/features/meals/presentation/meal_type_icon.dart';
 import 'package:gut_journey/features/medications/data/medication_repository.dart';
 import 'package:gut_journey/features/medications/domain/medication.dart';
+import 'package:gut_journey/features/medications/domain/medication_enums.dart';
 import 'package:gut_journey/features/sleep/data/sleep_repository.dart';
 import 'package:gut_journey/features/sleep/presentation/sleep_quick_add_sheet.dart';
 import 'package:gut_journey/features/symptoms/data/symptom_repository.dart';
@@ -40,6 +41,7 @@ class _TimelineItem {
     this.subtitle,
     this.timeLabel,
     this.onEdit,
+    this.muted = false,
   });
 
   final String id;
@@ -51,6 +53,9 @@ class _TimelineItem {
   final VoidCallback? onEdit;
   final Future<void> Function() delete;
   final Future<void> Function() restore;
+
+  /// Dims the leading icon (skipped doses).
+  final bool muted;
 }
 
 /// Chronological list of everything logged on [diaryDay]: tap to edit,
@@ -119,7 +124,12 @@ class EntryTimeline extends ConsumerWidget {
               restore: item.restore,
             ),
             child: ListTile(
-              leading: Icon(item.icon),
+              leading: Icon(
+                item.icon,
+                color: item.muted
+                    ? Theme.of(context).colorScheme.outline
+                    : null,
+              ),
               title: Text(item.title),
               subtitle: item.subtitle != null ? Text(item.subtitle!) : null,
               trailing: item.timeLabel != null
@@ -278,11 +288,15 @@ class EntryTimeline extends ConsumerWidget {
           id: intake.id,
           sortKey: intake.occurredAt,
           icon: Icons.medication_outlined,
+          muted: intake.status == IntakeStatus.skipped,
           title:
               medications[intake.medicationId]?.name ?? l10n.quickAddMedication,
-          subtitle: intake.scheduledTime != null
-              ? l10n.takenAt(intake.scheduledTime!)
-              : l10n.takenStatus,
+          subtitle: switch ((intake.status, intake.scheduledTime)) {
+            (IntakeStatus.taken, final slot?) => l10n.takenAt(slot),
+            (IntakeStatus.taken, null) => l10n.takenStatus,
+            (IntakeStatus.skipped, final slot?) => l10n.skippedAt(slot),
+            (IntakeStatus.skipped, null) => l10n.skippedStatus,
+          },
           timeLabel: timeOf(intake.occurredAt),
           delete: () => medicationRepo.deleteIntake(intake.id),
           restore: () async {

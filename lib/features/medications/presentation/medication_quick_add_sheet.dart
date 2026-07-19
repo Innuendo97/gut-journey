@@ -71,13 +71,19 @@ class MedicationQuickAddSheet extends ConsumerWidget {
             _ScheduledMedicationTile(
               medication: med,
               intakes: intakes,
-              onTake: (slot) => repo.logIntake(
-                medicationId: med.id,
-                status: IntakeStatus.taken,
-                occurredAt: _occurredAt(ref, slot),
-                scheduledTime: slot,
-              ),
-              onUndo: repo.deleteIntake,
+              onSetStatus: (slot, current, target) async {
+                // Re-applying the same status is a no-op, not a re-log.
+                if (current?.status == target) return;
+                if (current != null) await repo.deleteIntake(current.id);
+                if (target != null) {
+                  await repo.logIntake(
+                    medicationId: med.id,
+                    status: target,
+                    occurredAt: _occurredAt(ref, slot),
+                    scheduledTime: slot,
+                  );
+                }
+              },
             ),
           const SizedBox(height: 16),
         ],
@@ -119,14 +125,20 @@ class _ScheduledMedicationTile extends StatelessWidget {
   const _ScheduledMedicationTile({
     required this.medication,
     required this.intakes,
-    required this.onTake,
-    required this.onUndo,
+    required this.onSetStatus,
   });
 
   final Medication medication;
   final List<MedicationIntake> intakes;
-  final ValueChanged<String> onTake;
-  final ValueChanged<String> onUndo;
+
+  /// Moves a slot to the target status — null clears it. The second
+  /// argument is the intake occupying the slot right now, if any.
+  final void Function(
+    String slot,
+    MedicationIntake? current,
+    IntakeStatus? target,
+  )
+  onSetStatus;
 
   /// The intake covering a slot, if any: prefer an exact slot match, then
   /// any unassigned taken dose of this medication.
@@ -156,17 +168,52 @@ class _ScheduledMedicationTile extends StatelessWidget {
               builder: (context) {
                 final intake = _intakeForSlot(slot, claimed);
                 if (intake != null) claimed.add(intake.id);
-                return FilterChip(
-                  label: Text(slot),
-                  selected: intake != null,
-                  tooltip: intake != null ? l10n.takenStatus : null,
-                  onSelected: (selected) {
-                    if (selected) {
-                      onTake(slot);
-                    } else if (intake != null) {
-                      onUndo(intake.id);
-                    }
-                  },
+                final skipped = intake?.status == IntakeStatus.skipped;
+                // Tap keeps the quick path (taken/clear); long-press opens
+                // the menu with the skipped option.
+                return MenuAnchor(
+                  menuChildren: [
+                    MenuItemButton(
+                      leadingIcon: const Icon(Icons.check),
+                      onPressed: () =>
+                          onSetStatus(slot, intake, IntakeStatus.taken),
+                      child: Text(l10n.takenStatus),
+                    ),
+                    MenuItemButton(
+                      leadingIcon: const Icon(Icons.block),
+                      onPressed: () =>
+                          onSetStatus(slot, intake, IntakeStatus.skipped),
+                      child: Text(l10n.skippedStatus),
+                    ),
+                    if (intake != null)
+                      MenuItemButton(
+                        leadingIcon: const Icon(Icons.clear),
+                        onPressed: () => onSetStatus(slot, intake, null),
+                        child: Text(l10n.medicationSlotClear),
+                      ),
+                  ],
+                  builder: (context, controller, _) => GestureDetector(
+                    onLongPress: () => controller.isOpen
+                        ? controller.close()
+                        : controller.open(),
+                    // No tooltip: its long-press recognizer would swallow
+                    // the long-press that opens the status menu.
+                    child: FilterChip(
+                      label: Text(slot),
+                      selected: intake != null,
+                      avatar: skipped ? const Icon(Icons.block) : null,
+                      showCheckmark: !skipped,
+                      onSelected: (selected) {
+                        if (selected) {
+                          if (intake == null) {
+                            onSetStatus(slot, null, IntakeStatus.taken);
+                          }
+                        } else {
+                          onSetStatus(slot, intake, null);
+                        }
+                      },
+                    ),
+                  ),
                 );
               },
             ),

@@ -10,6 +10,7 @@ import 'package:gut_journey/features/diary/domain/diary_day.dart';
 import 'package:gut_journey/features/diary/presentation/diary_day_body.dart';
 import 'package:gut_journey/features/diary/presentation/diary_providers.dart';
 import 'package:gut_journey/features/meals/presentation/meal_quick_add_sheet.dart';
+import 'package:gut_journey/features/medications/domain/medication_enums.dart';
 import 'package:gut_journey/features/medications/presentation/medication_quick_add_sheet.dart';
 import 'package:gut_journey/features/nutrition/presentation/nutrition_providers.dart';
 import 'package:gut_journey/features/settings/data/settings_repository.dart';
@@ -217,7 +218,9 @@ class DaySummaryStrip extends ConsumerWidget {
       0,
       (sum, med) => sum + med.expectedSlotsOn(diaryDay.day).length,
     );
-    final takenDoses = diaryDay.medicationIntakes.length;
+    final takenDoses = diaryDay.medicationIntakes
+        .where((intake) => intake.status == IntakeStatus.taken)
+        .length;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
