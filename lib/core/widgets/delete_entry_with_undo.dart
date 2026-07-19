@@ -39,13 +39,30 @@ void deleteEntryWithUndo(
   final l10n = AppLocalizations.of(context);
   final messenger = ScaffoldMessenger.of(context);
   unawaited(delete());
-  messenger.showSnackBar(
-    SnackBar(
-      content: Text(l10n.entryDeleted),
-      action: SnackBarAction(
-        label: l10n.undo,
-        onPressed: () => unawaited(restore()),
+  // A new delete replaces the previous snackbar instead of queueing behind
+  // it, so Undo always targets the entry that was just removed.
+  messenger
+    ..clearSnackBars()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(l10n.entryDeleted),
+        // Explicit so the auto-dismiss window survives any theme or
+        // framework default change.
+        // ignore: avoid_redundant_argument_values
+        duration: const Duration(seconds: 4),
+        // Snackbars with an action persist by default since Flutter 3.4x —
+        // exactly the "delete toast never goes away" bug. Undo is a grace
+        // window, not a required choice, so time out normally.
+        persist: false,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        action: SnackBarAction(
+          label: l10n.undo,
+          onPressed: () => unawaited(restore()),
+        ),
       ),
-    ),
-  );
+    );
 }

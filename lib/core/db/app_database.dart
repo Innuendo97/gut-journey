@@ -45,7 +45,6 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
-      await _seedSymptomPresets();
     },
     // Every schema bump ships its step here (generated helpers in
     // schema_versions.dart) plus a test in test/core/db/migration_test.dart.
@@ -70,6 +69,11 @@ class AppDatabase extends _$AppDatabase {
     beforeOpen: (details) async {
       // Required for the CASCADE/RESTRICT actions declared on references.
       await customStatement('PRAGMA foreign_keys = ON');
+      // Seeding lives here (not in onCreate) so presets added in later
+      // releases backfill existing databases on next open. Deterministic
+      // ids + insertOrIgnore make it idempotent, and an archived preset
+      // stays archived: its row still exists, so the insert is ignored.
+      await _seedSymptomPresets();
     },
   );
 
@@ -83,7 +87,7 @@ class AppDatabase extends _$AppDatabase {
             presetKey: Value(key),
             createdAt: now,
           ),
-      ]);
+      ], mode: InsertMode.insertOrIgnore);
     });
   }
 }
