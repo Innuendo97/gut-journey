@@ -24,16 +24,18 @@ void main() {
       );
 
   group('expectedSlotsOn', () {
-    test('is empty before start, after end, when inactive or as-needed', () {
+    test('is empty before start, after end or as-needed', () {
       expect(med.expectedSlotsOn(LocalDay('2026-07-09')), isEmpty);
       expect(med.expectedSlotsOn(LocalDay('2026-07-10')), hasLength(2));
 
       final ended = med.copyWith(endDay: LocalDay('2026-07-12'));
       expect(ended.expectedSlotsOn(LocalDay('2026-07-13')), isEmpty);
 
+      // Deactivating no longer hides covered days: the window decides
+      // (v0.6 retroactive-therapy semantics).
       expect(
         med.copyWith(isActive: false).expectedSlotsOn(LocalDay('2026-07-14')),
-        isEmpty,
+        hasLength(2),
       );
       expect(
         med

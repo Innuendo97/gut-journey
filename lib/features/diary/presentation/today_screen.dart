@@ -212,7 +212,7 @@ class DaySummaryStrip extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final goal = ref.watch(settingsProvider).waterGoalMl;
-    final medications = ref.watch(activeMedicationsProvider).value ?? const [];
+    final medications = ref.watch(medicationsOnDayProvider(diaryDay.day));
     final expectedDoses = medications.fold<int>(
       0,
       (sum, med) => sum + med.expectedSlotsOn(diaryDay.day).length,

@@ -81,13 +81,60 @@ class MedicationRepository {
     );
   }
 
+  /// Toggles "part of the current therapy" and keeps the date window
+  /// consistent with it: deactivating closes an open (or future) window at
+  /// today, reactivating reopens a window that already ended.
   Future<void> setActive(String id, {required bool isActive}) async {
+    final today = LocalDay.fromDateTime(_clock());
+    final row = await (_db.select(
+      _db.medications,
+    )..where((t) => t.id.equals(id))).getSingle();
+    final end = row.endDay == null ? null : LocalDay(row.endDay!);
+    var endDay = const Value<String?>.absent();
+    if (!isActive && (end == null || end.isAfter(today))) {
+      endDay = Value(today.value);
+    } else if (isActive && end != null && !end.isAfter(today)) {
+      endDay = const Value(null);
+    }
     await (_db.update(_db.medications)..where((t) => t.id.equals(id))).write(
       MedicationsCompanion(
         isActive: Value(isActive),
+        endDay: endDay,
         updatedAt: Value(_clock().toUtc()),
       ),
     );
+  }
+
+  /// One-time backfill for databases predating window semantics: inactive
+  /// medications used to keep an open end date, which would now read as
+  /// "expected forever". Closes them at their last intake day (or start
+  /// day when never taken).
+  Future<void> closeOrphanEndDays() async {
+    final rows =
+        await (_db.select(_db.medications)..where(
+              (t) => t.isActive.equals(false) & t.endDay.isNull(),
+            ))
+            .get();
+    for (final row in rows) {
+      final lastIntake =
+          await (_db.select(_db.medicationIntakes)
+                ..where((t) => t.medicationId.equals(row.id))
+                ..orderBy([(t) => OrderingTerm.desc(t.localDay)])
+                ..limit(1))
+              .getSingleOrNull();
+      final end =
+          lastIntake != null && lastIntake.localDay.compareTo(row.startDay) > 0
+          ? lastIntake.localDay
+          : row.startDay;
+      await (_db.update(
+        _db.medications,
+      )..where((t) => t.id.equals(row.id))).write(
+        MedicationsCompanion(
+          endDay: Value(end),
+          updatedAt: Value(_clock().toUtc()),
+        ),
+      );
+    }
   }
 
   /// Removes the medication and, via ON DELETE CASCADE, its intake history.

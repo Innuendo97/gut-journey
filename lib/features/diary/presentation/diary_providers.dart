@@ -36,6 +36,19 @@ final symptomTypesProvider = StreamProvider<List<SymptomType>>(
   (ref) => ref.watch(symptomRepositoryProvider).watchTypes(),
 );
 
-final activeMedicationsProvider = StreamProvider<List<Medication>>(
-  (ref) => ref.watch(medicationRepositoryProvider).watchAll(activeOnly: true),
+/// Every medication, current or past: which ones belong to a given diary
+/// day is decided by their date window, not by [Medication.isActive].
+final medicationsProvider = StreamProvider<List<Medication>>(
+  (ref) => ref.watch(medicationRepositoryProvider).watchAll(),
+);
+
+/// The medications whose validity window covers the given day — the set the
+/// diary offers for logging doses on that day, even when the therapy has
+/// since ended or been deactivated.
+final medicationsOnDayProvider = Provider.family<List<Medication>, LocalDay>(
+  (ref, day) => [
+    for (final med
+        in ref.watch(medicationsProvider).value ?? const <Medication>[])
+      if (med.coversDay(day)) med,
+  ],
 );

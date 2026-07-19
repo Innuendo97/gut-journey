@@ -159,7 +159,7 @@ class EntryTimeline extends ConsumerWidget {
     };
     final medications = {
       for (final med
-          in ref.watch(activeMedicationsProvider).value ?? const <Medication>[])
+          in ref.watch(medicationsProvider).value ?? const <Medication>[])
         med.id: med,
     };
     final day = diaryDay.day;

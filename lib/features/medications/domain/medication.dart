@@ -27,13 +27,21 @@ abstract class Medication with _$Medication {
   factory Medication.fromJson(Map<String, dynamic> json) =>
       _$MedicationFromJson(json);
 
-  /// The "HH:mm" dose slots expected on [day], empty when the medication is
-  /// as-needed, inactive, or [day] is outside its start/end window.
-  List<String> expectedSlotsOn(LocalDay day) {
-    if (scheduleType != ScheduleType.daily || !isActive) return const [];
-    if (day.isBefore(startDay)) return const [];
+  /// Whether [day] falls inside this medication's start/end window.
+  ///
+  /// The window — not [isActive] — decides what belongs to a diary day, so
+  /// past days keep their therapy even after it ends. [isActive] only marks
+  /// the medication as part of the current therapy (reminders, manage list).
+  bool coversDay(LocalDay day) {
+    if (day.isBefore(startDay)) return false;
     final end = endDay;
-    if (end != null && day.isAfter(end)) return const [];
-    return scheduledTimes;
+    return end == null || !day.isAfter(end);
+  }
+
+  /// The "HH:mm" dose slots expected on [day], empty when the medication is
+  /// as-needed or [day] is outside its start/end window.
+  List<String> expectedSlotsOn(LocalDay day) {
+    if (scheduleType != ScheduleType.daily) return const [];
+    return coversDay(day) ? scheduledTimes : const [];
   }
 }

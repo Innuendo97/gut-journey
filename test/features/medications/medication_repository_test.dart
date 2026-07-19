@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gut_journey/core/db/app_database.dart';
 import 'package:gut_journey/core/domain/local_day.dart';
@@ -102,5 +103,86 @@ void main() {
 
     expect(await repo.watchAll().first, isEmpty);
     expect(await db.select(db.medicationIntakes).get(), isEmpty);
+  });
+
+  test('deactivating closes an open window at today, reactivating reopens '
+      'it', () async {
+    final id = await repo.createMedication(
+      name: 'Mebeverine',
+      scheduleType: ScheduleType.daily,
+      scheduledTimes: ['08:00'],
+      startDay: LocalDay('2026-07-01'),
+    );
+
+    await repo.setActive(id, isActive: false);
+    var med = (await repo.watchAll().first).single;
+    expect(med.isActive, isFalse);
+    expect(med.endDay, day); // clock-today, 2026-07-14
+
+    await repo.setActive(id, isActive: true);
+    med = (await repo.watchAll().first).single;
+    expect(med.isActive, isTrue);
+    expect(med.endDay, isNull);
+  });
+
+  test('toggling active keeps a planned future end date', () async {
+    final id = await repo.createMedication(
+      name: 'Rifaximin',
+      scheduleType: ScheduleType.daily,
+      scheduledTimes: ['08:00'],
+      startDay: LocalDay('2026-07-01'),
+      endDay: LocalDay('2026-08-01'),
+    );
+
+    // A future course boundary is a plan, not history: closing overrides
+    // it, but a plain past end date survives reactivation.
+    await repo.setActive(id, isActive: false);
+    var med = (await repo.watchAll().first).single;
+    expect(med.endDay, day);
+
+    await repo.updateMedication(med.copyWith(endDay: LocalDay('2026-07-10')));
+    await repo.setActive(id, isActive: false);
+    med = (await repo.watchAll().first).single;
+    expect(med.endDay, LocalDay('2026-07-10'));
+  });
+
+  test('closeOrphanEndDays closes inactive open windows at the last intake '
+      'day', () async {
+    final neverTaken = await repo.createMedication(
+      name: 'Old med',
+      scheduleType: ScheduleType.daily,
+      scheduledTimes: ['08:00'],
+      startDay: LocalDay('2026-06-01'),
+    );
+    final taken = await repo.createMedication(
+      name: 'Older med',
+      scheduleType: ScheduleType.daily,
+      scheduledTimes: ['08:00'],
+      startDay: LocalDay('2026-06-01'),
+    );
+    await repo.createMedication(
+      name: 'Current med',
+      scheduleType: ScheduleType.daily,
+      scheduledTimes: ['08:00'],
+      startDay: LocalDay('2026-06-01'),
+    );
+    await repo.logIntake(
+      medicationId: taken,
+      status: IntakeStatus.taken,
+      occurredAt: DateTime(2026, 6, 20, 8),
+    );
+    // Legacy deactivation: flip the flag directly, leaving the window open.
+    await (db.update(db.medications)
+          ..where((t) => t.id.isIn([neverTaken, taken])))
+        .write(const MedicationsCompanion(isActive: Value(false)));
+
+    await repo.closeOrphanEndDays();
+
+    final meds = {
+      for (final med in await repo.watchAll().first) med.name: med,
+    };
+    expect(meds['Old med']!.endDay, LocalDay('2026-06-01'));
+    expect(meds['Older med']!.endDay, LocalDay('2026-06-20'));
+    expect(meds['Current med']!.endDay, isNull);
   });
 }

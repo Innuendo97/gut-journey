@@ -40,7 +40,7 @@ class MedicationQuickAddSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final medications = ref.watch(activeMedicationsProvider).value ?? const [];
+    final medications = ref.watch(medicationsOnDayProvider(day));
     final diaryDay = ref.watch(diaryDayProvider(day)).value;
     final intakes = diaryDay?.medicationIntakes ?? const <MedicationIntake>[];
     final repo = ref.read(medicationRepositoryProvider);
