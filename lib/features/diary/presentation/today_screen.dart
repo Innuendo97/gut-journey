@@ -20,49 +20,71 @@ import 'package:gut_journey/features/weight/presentation/weight_quick_add_sheet.
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
 import 'package:intl/intl.dart';
 
+/// The home tab: always pinned to the current day. Past days are reviewed
+/// and back-filled from History instead.
 class TodayScreen extends ConsumerWidget {
   const TodayScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final day = ref.watch(selectedDayProvider);
-    final today = LocalDay.fromDateTime(ref.watch(clockProvider)());
+    final now = ref.watch(clockProvider)();
+    final today = LocalDay.fromDateTime(now);
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left),
-          onPressed: () => ref.read(selectedDayProvider.notifier).previousDay(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _GreetingHeader(now: now),
+            Expanded(child: DiaryDayBody(day: today)),
+          ],
         ),
-        title: Text(_dayTitle(context, day, today)),
-        centerTitle: true,
-        actions: [
-          if (day != today)
-            IconButton(
-              icon: const Icon(Icons.today_outlined),
-              tooltip: l10n.todayLabel,
-              onPressed: () =>
-                  ref.read(selectedDayProvider.notifier).goToToday(),
-            ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right),
-            onPressed: day.isBefore(today)
-                ? () => ref.read(selectedDayProvider.notifier).nextDay()
-                : null,
-          ),
-        ],
       ),
-      body: DiaryDayBody(day: day),
     );
   }
+}
 
-  String _dayTitle(BuildContext context, LocalDay day, LocalDay today) {
+/// Greeting by time of day plus the full date — Today's replacement for an
+/// app bar.
+class _GreetingHeader extends StatelessWidget {
+  const _GreetingHeader({required this.now});
+
+  final DateTime now;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    if (day == today) return l10n.todayLabel;
-    if (day == today.previous) return l10n.yesterdayLabel;
+    final theme = Theme.of(context);
+    final greeting = switch (now.hour) {
+      < 12 => l10n.todayGreetingMorning,
+      < 18 => l10n.todayGreetingAfternoon,
+      _ => l10n.todayGreetingEvening,
+    };
     final locale = Localizations.localeOf(context).toString();
-    return DateFormat.MMMEd(locale).format(day.toDateTime());
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              greeting,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              DateFormat.yMMMMEEEEd(locale).format(now),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

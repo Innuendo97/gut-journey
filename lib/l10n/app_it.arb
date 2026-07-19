@@ -18,6 +18,9 @@
   "entryDeleted": "Voce eliminata",
   "todayLabel": "Oggi",
   "yesterdayLabel": "Ieri",
+  "todayGreetingMorning": "Buongiorno",
+  "todayGreetingAfternoon": "Buon pomeriggio",
+  "todayGreetingEvening": "Buonasera",
 
   "emptyDayTitle": "Nessuna registrazione",
   "emptyDaySubtitle": "Usa i pulsanti qui sopra per registrare la tua giornata — bastano pochi secondi.",
