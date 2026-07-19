@@ -21,6 +21,9 @@
   "todayGreetingMorning": "Buongiorno",
   "todayGreetingAfternoon": "Buon pomeriggio",
   "todayGreetingEvening": "Buonasera",
+  "historyPreviousDay": "Giorno precedente",
+  "historyNextDay": "Giorno successivo",
+  "historyOpenCalendar": "Apri calendario",
 
   "emptyDayTitle": "Nessuna registrazione",
   "emptyDaySubtitle": "Usa i pulsanti qui sopra per registrare la tua giornata — bastano pochi secondi.",

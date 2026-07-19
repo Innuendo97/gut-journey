@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gut_journey/features/diary/domain/tracker_kind.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -15,7 +15,7 @@ Future<void> usePhonePortraitSurface(WidgetTester tester) async {
 }
 
 void main() {
-  testApp('History shows the calendar and the selected day view', (
+  testApp('History opens on today with day stepping in the header', (
     tester,
     harness,
   ) async {
@@ -26,12 +26,28 @@ void main() {
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(TableCalendar<TrackerKind>), findsOneWidget);
-    // Today is selected by default → the water entry is visible below.
+    // No always-on calendar anymore; the header carries the selection.
+    expect(find.byType(TableCalendar<TrackerKind>), findsNothing);
+    expect(find.text('Today'), findsNWidgets(2)); // header + nav tab
     expect(find.text('250 ml'), findsOneWidget);
+
+    // On today, the forward chevron is disabled.
+    final forward = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.chevron_right),
+    );
+    expect(forward.onPressed, isNull);
+
+    // Two steps back land on Sunday the 12th (FixedClock: 2026-07-14).
+    await tester.tap(find.byIcon(Icons.chevron_left));
+    await tester.pumpAndSettle();
+    expect(find.text('Yesterday'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.chevron_left));
+    await tester.pumpAndSettle();
+    expect(find.text('Sunday, July 12'), findsOneWidget);
+    expect(find.text('Nothing logged yet'), findsOneWidget);
   });
 
-  testApp("calendar markers appear and disappear with the day's entries", (
+  testApp('the calendar sheet shows markers and picks a day', (
     tester,
     harness,
   ) async {
@@ -42,17 +58,21 @@ void main() {
 
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Open calendar'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TableCalendar<TrackerKind>), findsOneWidget);
     expect(find.byKey(markerKey), findsOneWidget);
 
-    // Swipe-delete from History's own day view: the dot row reacts too.
-    await tester.drag(find.text('250 ml'), const Offset(-600, 0));
+    // Picking a day closes the sheet and shows that day below.
+    await tester.tap(find.text('13')); // July 13th, unique in the grid
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Delete')); // confirm the swipe
-    await tester.pumpAndSettle();
-    expect(find.byKey(markerKey), findsNothing);
+    expect(find.byType(TableCalendar<TrackerKind>), findsNothing);
+    expect(find.text('Yesterday'), findsOneWidget); // July 13 header
+    expect(find.text('Nothing logged yet'), findsOneWidget);
   });
 
-  testApp('selecting a past day shows its (empty) diary for back-filling', (
+  testApp('a past day selected from the sheet can be back-filled', (
     tester,
     harness,
   ) async {
@@ -60,11 +80,20 @@ void main() {
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.byTooltip('Open calendar'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('13')); // July 13th, unique in the grid
     await tester.pumpAndSettle();
 
     expect(find.text('Nothing logged yet'), findsOneWidget);
     // The quick-add bar is available for back-filling.
-    expect(find.text('Meal'), findsOneWidget);
+    await tapQuickAdd(tester, 'Water');
+    expect(find.text('250 ml'), findsOneWidget);
+
+    // The entry landed on the 13th, not on today.
+    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.pumpAndSettle();
+    expect(find.text('Today'), findsNWidgets(2)); // header + nav tab
+    expect(find.text('250 ml'), findsNothing);
   });
 }
