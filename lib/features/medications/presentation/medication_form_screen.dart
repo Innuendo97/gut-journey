@@ -8,6 +8,7 @@ import 'package:gut_journey/features/medications/data/medication_repository.dart
 import 'package:gut_journey/features/medications/domain/medication.dart';
 import 'package:gut_journey/features/medications/domain/medication_enums.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
+import 'package:intl/intl.dart';
 
 /// Create ([existing] == null) or edit a medication and its schedule.
 class MedicationFormScreen extends ConsumerStatefulWidget {
@@ -25,8 +26,11 @@ class _MedicationFormScreenState extends ConsumerState<MedicationFormScreen> {
   late final TextEditingController _dosage;
   late ScheduleType _scheduleType;
   late List<String> _times;
+  late LocalDay _startDay;
+  LocalDay? _endDay;
   var _saving = false;
   String? _nameError;
+  String? _dateError;
 
   @override
   void initState() {
@@ -38,6 +42,9 @@ class _MedicationFormScreenState extends ConsumerState<MedicationFormScreen> {
     _times = [
       ...existing?.scheduledTimes ?? const ['08:00'],
     ];
+    _startDay =
+        existing?.startDay ?? LocalDay.fromDateTime(ref.read(clockProvider)());
+    _endDay = existing?.endDay;
   }
 
   @override
@@ -64,11 +71,52 @@ class _MedicationFormScreenState extends ConsumerState<MedicationFormScreen> {
     }
   }
 
+  Future<void> _pickStartDay() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _startDay.toDateTime(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        _startDay = LocalDay.fromDateTime(picked);
+        _dateError = null;
+      });
+    }
+  }
+
+  Future<void> _pickEndDay() async {
+    final start = _startDay.toDateTime();
+    final end = _endDay?.toDateTime();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: end == null || end.isBefore(start) ? start : end,
+      firstDate: start,
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        _endDay = LocalDay.fromDateTime(picked);
+        _dateError = null;
+      });
+    }
+  }
+
   Future<void> _save() async {
     final name = _name.text.trim();
     if (name.isEmpty) {
       setState(
         () => _nameError = AppLocalizations.of(context).medicationNameRequired,
+      );
+      return;
+    }
+    final end = _endDay;
+    if (end != null && end.isBefore(_startDay)) {
+      setState(
+        () => _dateError = AppLocalizations.of(
+          context,
+        ).medicationEndBeforeStartError,
       );
       return;
     }
@@ -85,7 +133,8 @@ class _MedicationFormScreenState extends ConsumerState<MedicationFormScreen> {
         dosage: dosage,
         scheduleType: _scheduleType,
         scheduledTimes: times,
-        startDay: LocalDay.fromDateTime(ref.read(clockProvider)()),
+        startDay: _startDay,
+        endDay: _endDay,
       );
     } else {
       await repo.updateMedication(
@@ -94,6 +143,8 @@ class _MedicationFormScreenState extends ConsumerState<MedicationFormScreen> {
           dosage: dosage,
           scheduleType: _scheduleType,
           scheduledTimes: times,
+          startDay: _startDay,
+          endDay: _endDay,
         ),
       );
     }
@@ -127,6 +178,11 @@ class _MedicationFormScreenState extends ConsumerState<MedicationFormScreen> {
           .deleteMedication(existing.id);
       if (mounted) Navigator.of(context).pop();
     }
+  }
+
+  String _formatDay(BuildContext context, LocalDay day) {
+    final locale = Localizations.localeOf(context).toString();
+    return DateFormat.yMMMd(locale).format(day.toDateTime());
   }
 
   @override
@@ -165,7 +221,46 @@ class _MedicationFormScreenState extends ConsumerState<MedicationFormScreen> {
             controller: _dosage,
             decoration: InputDecoration(labelText: l10n.dosageLabel),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.event_outlined),
+            title: Text(l10n.medicationStartDayLabel),
+            subtitle: Text(_formatDay(context, _startDay)),
+            onTap: () => unawaited(_pickStartDay()),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.event_busy_outlined),
+            title: Text(l10n.medicationEndDayLabel),
+            subtitle: Text(
+              _endDay == null
+                  ? l10n.medicationNoEndDay
+                  : _formatDay(context, _endDay!),
+            ),
+            trailing: _endDay == null
+                ? null
+                : IconButton(
+                    icon: const Icon(Icons.clear),
+                    tooltip: l10n.medicationClearEndDay,
+                    onPressed: () => setState(() {
+                      _endDay = null;
+                      _dateError = null;
+                    }),
+                  ),
+            onTap: () => unawaited(_pickEndDay()),
+          ),
+          if (_dateError != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                _dateError!,
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              ),
+            ),
+          const SizedBox(height: 16),
           Text(
             l10n.scheduleLabel,
             style: Theme.of(context).textTheme.titleSmall,
