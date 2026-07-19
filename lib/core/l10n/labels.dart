@@ -80,6 +80,9 @@ extension DomainLabels on AppLocalizations {
       'urgency' => symptomUrgency,
       'fatigue' => symptomFatigue,
       'headache' => symptomHeadache,
+      'fever' => symptomFever,
+      'low_blood_pressure' => symptomLowBloodPressure,
+      'high_blood_pressure' => symptomHighBloodPressure,
       final other => other ?? '',
     };
   }

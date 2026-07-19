@@ -74,6 +74,9 @@
   "symptomUrgency": "Urgenza",
   "symptomFatigue": "Stanchezza",
   "symptomHeadache": "Mal di testa",
+  "symptomFever": "Febbre",
+  "symptomLowBloodPressure": "Pressione bassa",
+  "symptomHighBloodPressure": "Pressione alta",
 
   "bowelSheetTitle": "Registra un'evacuazione",
   "bowelSheetEditTitle": "Modifica evacuazione",

@@ -13,6 +13,9 @@ const symptomPresetKeys = [
   'urgency',
   'fatigue',
   'headache',
+  'fever',
+  'low_blood_pressure',
+  'high_blood_pressure',
 ];
 
 /// Deterministic id for a seeded preset, stable across installs — handy for

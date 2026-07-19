@@ -101,6 +101,9 @@
   "symptomUrgency": "Urgency",
   "symptomFatigue": "Fatigue",
   "symptomHeadache": "Headache",
+  "symptomFever": "Fever",
+  "symptomLowBloodPressure": "Low blood pressure",
+  "symptomHighBloodPressure": "High blood pressure",
 
   "bowelSheetTitle": "Log a bowel movement",
   "bowelSheetEditTitle": "Edit bowel movement",

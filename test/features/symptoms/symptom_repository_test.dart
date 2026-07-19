@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:drift/drift.dart' show Value;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gut_journey/core/db/app_database.dart';
 import 'package:gut_journey/core/domain/date_range.dart';
@@ -27,7 +31,8 @@ void main() {
   test('lists presets first, then custom types in creation order', () async {
     await repo.addCustomType('Brain fog');
     final types = await repo.watchTypes().first;
-    expect(types, hasLength(symptomPresetKeys.length + 1));
+    expect(symptomPresetKeys, hasLength(13));
+    expect(types, hasLength(14)); // 13 presets + 1 custom
     expect(
       types.take(symptomPresetKeys.length).map((t) => t.isPreset),
       everyElement(isTrue),
@@ -91,5 +96,63 @@ void main() {
 
     await repo.deleteEntry(id);
     expect(await repo.watchByDay(LocalDay('2026-07-15')).first, isEmpty);
+  });
+
+  group('preset seeding on open', () {
+    late Directory tempDir;
+    late File dbFile;
+
+    setUp(() async {
+      tempDir = await Directory.systemTemp.createTemp('gut_journey_seed');
+      dbFile = File('${tempDir.path}/db.sqlite');
+    });
+
+    tearDown(() async {
+      await tempDir.delete(recursive: true);
+    });
+
+    test(
+      'an existing database gains exactly the new presets on open',
+      () async {
+        const newIds = [
+          'preset-fever',
+          'preset-low_blood_pressure',
+          'preset-high_blood_pressure',
+        ];
+
+        var seeded = AppDatabase(NativeDatabase(dbFile));
+        await seeded.select(seeded.symptomTypes).get(); // opens and seeds
+        // Simulate a pre-v0.6 install that only has the original 10 presets.
+        await (seeded.delete(
+          seeded.symptomTypes,
+        )..where((t) => t.id.isIn(newIds))).go();
+        expect(await seeded.select(seeded.symptomTypes).get(), hasLength(10));
+        await seeded.close();
+
+        seeded = AppDatabase(NativeDatabase(dbFile));
+        final rows = await seeded.select(seeded.symptomTypes).get();
+        expect(rows, hasLength(13));
+        expect(rows.map((r) => r.id).toSet(), hasLength(13)); // no duplicates
+        expect(rows.map((r) => r.id), containsAll(newIds));
+        await seeded.close();
+      },
+    );
+
+    test('an archived preset stays archived after re-seeding', () async {
+      var seeded = AppDatabase(NativeDatabase(dbFile));
+      await seeded.select(seeded.symptomTypes).get(); // opens and seeds
+      await (seeded.update(seeded.symptomTypes)
+            ..where((t) => t.id.equals(symptomPresetId('fever'))))
+          .write(const SymptomTypesCompanion(isArchived: Value(true)));
+      await seeded.close();
+
+      seeded = AppDatabase(NativeDatabase(dbFile));
+      final fever = await (seeded.select(
+        seeded.symptomTypes,
+      )..where((t) => t.id.equals(symptomPresetId('fever')))).getSingle();
+      expect(fever.isArchived, isTrue);
+      expect(await seeded.select(seeded.symptomTypes).get(), hasLength(13));
+      await seeded.close();
+    });
   });
 }
