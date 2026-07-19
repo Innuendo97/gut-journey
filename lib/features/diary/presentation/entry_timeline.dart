@@ -12,6 +12,7 @@ import 'package:gut_journey/features/diary/domain/diary_day.dart';
 import 'package:gut_journey/features/diary/presentation/diary_providers.dart';
 import 'package:gut_journey/features/meals/data/meal_repository.dart';
 import 'package:gut_journey/features/meals/domain/meal_entry.dart';
+import 'package:gut_journey/features/meals/domain/meal_item_label.dart';
 import 'package:gut_journey/features/meals/presentation/meal_quick_add_sheet.dart';
 import 'package:gut_journey/features/meals/presentation/meal_type_icon.dart';
 import 'package:gut_journey/features/medications/data/medication_repository.dart';
@@ -183,7 +184,7 @@ class EntryTimeline extends ConsumerWidget {
           title: l10n.mealTypeLabel(meal.type),
           subtitle: meal.items.isEmpty
               ? meal.notes
-              : meal.items.map(_mealItemLabel).join(', '),
+              : meal.items.map(mealItemLabel).join(', '),
           timeLabel: timeOf(meal.occurredAt),
           onEdit: () => MealQuickAddSheet.show(
             context,
@@ -384,15 +385,4 @@ class EntryTimeline extends ConsumerWidget {
         ),
     ];
   }
-}
-
-/// "Pasta 120 g" when the amount is known, just the name otherwise —
-/// precise meals read from the timeline at a glance.
-String _mealItemLabel(MealItem item) {
-  final amount = item.amountG;
-  if (amount == null) return item.food.name;
-  final grams = amount == amount.roundToDouble()
-      ? '${amount.round()}'
-      : '$amount';
-  return '${item.food.name} $grams g';
 }

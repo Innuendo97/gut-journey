@@ -1,7 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:gut_journey/core/domain/local_day.dart';
 import 'package:gut_journey/core/l10n/labels.dart';
 import 'package:gut_journey/features/diary/domain/diary_day.dart';
+import 'package:gut_journey/features/meals/domain/meal_item_label.dart';
 import 'package:gut_journey/features/medications/domain/medication_enums.dart';
 import 'package:gut_journey/features/report/domain/report_data.dart';
 import 'package:gut_journey/l10n/generated/app_localizations.dart';
@@ -126,6 +128,8 @@ class _ReportBuilder {
     ..._section(l10n.sectionWater, _water()),
     ..._section(l10n.sectionSleep, _sleep()),
     ..._section(l10n.sectionActivity, _activity()),
+    if (data.kcalByDay.isNotEmpty)
+      ..._section(l10n.sectionNutrition, _nutrition()),
     ..._section(l10n.sectionAdherence, _adherence()),
     if (data.days case final days?) ..._dailyLog(days),
   ];
@@ -367,6 +371,29 @@ class _ReportBuilder {
     ];
   }
 
+  /// Rendered only when there is at least one estimated total — the report
+  /// stays free of an all-empty table for users who never enter nutrition.
+  List<pw.Widget> _nutrition() {
+    final days = data.kcalByDay.keys.toList()..sort();
+    return [
+      pw.TableHelper.fromTextArray(
+        headers: [l10n.reportColDate, l10n.reportColKcal],
+        data: [
+          for (final day in days)
+            [
+              dateFormat.format(LocalDay(day).toDateTime()),
+              l10n.nutritionKcalValue(data.kcalByDay[day]!.round()),
+            ],
+        ],
+        headerStyle: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+        cellStyle: const pw.TextStyle(fontSize: 9),
+        headerDecoration: const pw.BoxDecoration(color: PdfColors.grey200),
+        border: pw.TableBorder.all(color: _barTrack, width: 0.5),
+        cellAlignments: {1: pw.Alignment.centerRight},
+      ),
+    ];
+  }
+
   pw.Widget _summaryLine(String text) =>
       pw.Text(text, style: const pw.TextStyle(fontSize: 10));
 
@@ -392,9 +419,19 @@ class _ReportBuilder {
       padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       width: double.infinity,
       color: PdfColors.grey200,
-      child: pw.Text(
-        dayFormat.format(day.day.toDateTime()),
-        style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            dayFormat.format(day.day.toDateTime()),
+            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          ),
+          if (data.kcalByDay[day.day.value] case final kcal?)
+            pw.Text(
+              l10n.nutritionKcalValue(kcal.round()),
+              style: const pw.TextStyle(fontSize: 9, color: _muted),
+            ),
+        ],
       ),
     ),
     if (day.sleep case final sleep?)
@@ -430,10 +467,13 @@ class _ReportBuilder {
             meal.occurredAt,
             l10n.mealTypeLabel(meal.type),
             _joinDetails([
+              // Grams when known ("Pasta 120 g"), the free-text portion
+              // as fallback for historical rows without an amount.
               for (final item in meal.items)
                 switch (item.portionDescription) {
-                  final portion? => '${item.food.name} ($portion)',
-                  null => item.food.name,
+                  final portion? when item.amountG == null =>
+                    '${item.food.name} ($portion)',
+                  _ => mealItemLabel(item),
                 },
             ]),
             notes: meal.notes,

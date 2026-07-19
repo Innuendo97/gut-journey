@@ -6,6 +6,7 @@ import 'package:gut_journey/core/domain/date_range.dart';
 import 'package:gut_journey/features/backup/data/backup_files.dart';
 import 'package:gut_journey/features/diary/data/diary_repository.dart';
 import 'package:gut_journey/features/medications/data/medication_repository.dart';
+import 'package:gut_journey/features/nutrition/data/nutrition_repository.dart';
 import 'package:gut_journey/features/report/data/report_data_repository.dart';
 import 'package:gut_journey/features/report/data/report_sharer.dart';
 import 'package:gut_journey/features/report/domain/report_data.dart';
@@ -39,6 +40,7 @@ class FakeReportDataRepository extends ReportDataRepository {
     required super.diary,
     required super.symptoms,
     required super.medications,
+    required super.nutrition,
   });
 
   final List<({DateRange range, bool includeDailyLog, int waterGoalMl})>
@@ -100,6 +102,7 @@ void testReport(
           diary: ref.watch(diaryRepositoryProvider),
           symptoms: ref.watch(symptomRepositoryProvider),
           medications: ref.watch(medicationRepositoryProvider),
+          nutrition: ref.watch(nutritionRepositoryProvider),
         ),
       ),
     ],

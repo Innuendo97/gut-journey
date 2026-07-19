@@ -3,6 +3,7 @@ import 'package:gut_journey/core/domain/date_range.dart';
 import 'package:gut_journey/features/diary/data/diary_repository.dart';
 import 'package:gut_journey/features/diary/domain/diary_day.dart';
 import 'package:gut_journey/features/medications/data/medication_repository.dart';
+import 'package:gut_journey/features/nutrition/data/nutrition_repository.dart';
 import 'package:gut_journey/features/report/domain/report_data.dart';
 import 'package:gut_journey/features/stats/data/stats_repository.dart';
 import 'package:gut_journey/features/symptoms/data/symptom_repository.dart';
@@ -13,6 +14,7 @@ final reportDataRepositoryProvider = Provider<ReportDataRepository>(
     diary: ref.watch(diaryRepositoryProvider),
     symptoms: ref.watch(symptomRepositoryProvider),
     medications: ref.watch(medicationRepositoryProvider),
+    nutrition: ref.watch(nutritionRepositoryProvider),
   ),
 );
 
@@ -24,15 +26,18 @@ class ReportDataRepository {
     required DiaryRepository diary,
     required SymptomRepository symptoms,
     required MedicationRepository medications,
+    required NutritionRepository nutrition,
   }) : _stats = stats,
        _diary = diary,
        _symptoms = symptoms,
-       _medications = medications;
+       _medications = medications,
+       _nutrition = nutrition;
 
   final StatsRepository _stats;
   final DiaryRepository _diary;
   final SymptomRepository _symptoms;
   final MedicationRepository _medications;
+  final NutritionRepository _nutrition;
 
   Future<ReportData> collect({
     required DateRange range,
@@ -48,6 +53,7 @@ class ReportDataRepository {
       sleepDaily,
       activityDaily,
       adherence,
+      kcalDaily,
     ) = await (
       _stats.watchSymptomIntensity(range).first,
       _stats.watchSymptomFrequency(range).first,
@@ -57,6 +63,7 @@ class ReportDataRepository {
       _stats.watchSleepDaily(range).first,
       _stats.watchActivityDaily(range).first,
       _stats.watchAdherence(range).first,
+      _nutrition.watchKcalDaily(range).first,
     ).wait;
 
     final symptomTypes = await _symptoms
@@ -90,6 +97,7 @@ class ReportDataRepository {
       medicationsById: {
         for (final medication in medications) medication.id: medication,
       },
+      kcalByDay: {for (final value in kcalDaily) value.day.value: value.value},
       days: days,
     );
   }
