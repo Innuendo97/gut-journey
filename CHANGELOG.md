@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-07-20
+
+### Added
+
+- **Medication reminders**: each scheduled therapy can opt into local
+  notifications at its own times. Reminders respect the therapy's date
+  range, survive a reboot, and ask for notification permission the first
+  time you turn one on.
+- **Retroactive therapy**: medications now have an editable start date and
+  an optional end date, so a course can be recorded exactly as it ran. Any
+  past day inside that range offers its medications for logging — even
+  after the therapy ended — and doses can be marked taken *or skipped*
+  (long-press a time slot) from any day in History.
+- Estimated calories in the PDF report: a daily total on each day of the
+  diary log, gram amounts on meal lines, and an "Estimated energy" summary
+  table.
+- Three more symptom presets: fever, low blood pressure, high blood
+  pressure. Existing databases pick them up automatically on the next
+  launch.
+
+### Changed
+
+- **History is now a day view**: the day you are reading is the whole
+  screen, with arrows to step between days and a calendar button that
+  opens the month on demand (markers included) instead of permanently
+  occupying the top half.
+- **Today** dropped its day navigation — History owns that now — and
+  opens with a greeting and the full date.
+- The estimated-energy card leads the day summary, with the day's calories
+  as its headline number.
+- Cards across the app are flat and tonal (Material 3 surface roles).
+
+### Fixed
+
+- The "Entry deleted" snackbar no longer stays on screen covering the
+  diary: it fades after a few seconds, floats above the content, and a new
+  deletion replaces the previous message. Undo still restores every field
+  of the entry.
+
 ## [0.5.0] - 2026-07-18
 
 ### Added
